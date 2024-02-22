@@ -21,6 +21,6 @@ func LoadDatabase() {
 	DB.AutoMigrate(&models.Users{})
 	DB.AutoMigrate(&models.Products{})
 	DB.AutoMigrate(&models.OtpMail{})
-	DB.AutoMigrate(&models.Categories{})
+	DB.AutoMigrate(&models.Category{})
 
 }

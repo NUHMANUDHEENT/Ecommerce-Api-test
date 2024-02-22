@@ -27,5 +27,6 @@ func AdminRouter(r *gin.RouterGroup) {
 	r.POST("/categories/add_category", controller.AddCategory)
 	r.PATCH("/categories/edit_category/:ID", controller.EditCategories)
 	r.DELETE("/categories/delete_category/:ID", controller.DeleteCategories)
+	r.PATCH("/categories/block_category/:ID", controller.BlockCategory)
 
 }

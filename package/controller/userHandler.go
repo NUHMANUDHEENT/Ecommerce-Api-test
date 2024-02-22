@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"project1/package/handler"
 	"project1/package/initializer"
 	"project1/package/models"
 	"time"
@@ -28,9 +29,9 @@ func UserSignUp(c *gin.Context) {
 	if err := initializer.DB.First(&LogJs, "email=?", LogJs.Email).Error; err == nil {
 		c.JSON(501, gin.H{"error": "Email address already exist"})
 	} else {
-		otp = initializer.GenerateOtp()
+		otp = handler.GenerateOtp()
 		fmt.Println("----------------", otp, "-----------------")
-		err = initializer.SendOtp(LogJs.Email, otp)
+		err = handler.SendOtp(LogJs.Email, otp)
 		if err != nil {
 			c.JSON(500, "failed to send otp")
 		} else {
@@ -91,6 +92,37 @@ func OtpCheck(c *gin.Context) {
 				c.JSON(500, "failed to delete otp data")
 			}
 			c.JSON(202, gin.H{"message": "user created successfully"})
+		}
+	}
+}
+func ResendOtp(c *gin.Context) {
+	var otpStore models.OtpMail
+	otp = handler.GenerateOtp()
+	err := handler.SendOtp(LogJs.Email, otp)
+	if err != nil {
+		c.JSON(500, "failed to send otp")
+	} else {
+		c.JSON(200, "otp send to mail  "+otp)
+		result := initializer.DB.First(&otpStore, "email=?", LogJs.Email)
+		if result.Error != nil {
+			otpStore = models.OtpMail{
+				Otp:       otp,
+				Email:     LogJs.Email,
+				CreatedAt: time.Now(),
+				ExpireAt:  time.Now().Add(15 * time.Second),
+			}
+			err := initializer.DB.Create(&otpStore)
+			if err.Error != nil {
+				c.JSON(500, gin.H{"error": "failed to save otp details"})
+			}
+		} else {
+			err := initializer.DB.Model(&otpStore).Where("email=?", LogJs.Email).Updates(models.OtpMail{
+				Otp:      otp,
+				ExpireAt: time.Now().Add(15 * time.Second),
+			})
+			if err.Error != nil {
+				c.JSON(500, "failed too update data")
+			}
 		}
 	}
 }

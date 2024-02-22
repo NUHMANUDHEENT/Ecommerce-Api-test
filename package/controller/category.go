@@ -9,7 +9,7 @@ import (
 )
 
 func CategoryList(c *gin.Context) {
-	var categorylist []models.Categories
+	var categorylist []models.Category
 	initializer.DB.Find(&categorylist)
 	for _, v := range categorylist {
 		c.JSON(200, gin.H{
@@ -21,7 +21,7 @@ func CategoryList(c *gin.Context) {
 	}
 }
 func AddCategory(c *gin.Context) {
-	var addcategory models.Categories
+	var addcategory models.Category
 	if err := c.ShouldBind(&addcategory); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to bind data"})
 		return
@@ -34,7 +34,7 @@ func AddCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Product created successfully"})
 }
 func EditCategories(c *gin.Context) {
-	var editcategory models.Categories
+	var editcategory models.Category
 	id := c.Param("ID")
 	err := initializer.DB.First(&editcategory, id)
 	if err.Error != nil {
@@ -63,6 +63,25 @@ func DeleteCategories(c *gin.Context) {
 			c.JSON(500, "failed to delete category")
 		} else {
 			c.JSON(200, "category deleted successfully")
+		}
+	}
+}
+func BlockCategory(c *gin.Context){
+	var blockCategory models.Category
+	id := c.Param("ID")
+	err := initializer.DB.First(&blockCategory, id)
+	if err.Error != nil {
+		c.JSON(500, gin.H{"error": "can't find Category"})
+	} else {
+		if blockCategory.Blocking {
+			blockCategory.Blocking = false
+			c.JSON(200, "Category blocked")
+		} else {
+			blockCategory.Blocking = true
+			c.JSON(200, "Category unblocked")
+		}
+		if err := initializer.DB.Save(&blockCategory).Error; err != nil {
+			c.JSON(500, "failed to block/unblock Category")
 		}
 	}
 }

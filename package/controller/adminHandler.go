@@ -98,26 +98,29 @@ func DeleteUser(c *gin.Context) {
 func ProductList(c *gin.Context) {
 	var productList []models.Products
 	// var checkCategory []models.Categories
-	err := initializer.DB.Find(&productList).Error
+	err := initializer.DB.Joins("Category").Find(&productList).Error
 	if err != nil {
 		c.JSON(500, "failed to fetch details")
 	} else {
 		for _, val := range productList {
-			c.JSON(200, gin.H{
-				"Product Id":       val.ID,
-				"Product Name":     val.Name,
-				"Product Price":    val.Price,
-				"Product Size":     val.Size,
-				"Product Color":    val.Color,
-				"Product Quantity": val.Quantity,
-				"Category name":    val.Category.Category_name,
-				// "Product Image":    val.ImagePath,
-				"Product Status": val.Status,
-				"category id":    val.CategoryId,
-			})
+			if !val.Category.Blocking {
+				continue
+			} else {
+				c.JSON(200, gin.H{
+					"Product Id":       val.ID,
+					"Product Name":     val.Name,
+					"Product Price":    val.Price,
+					"Product Size":     val.Size,
+					"Product Color":    val.Color,
+					"Product Quantity": val.Quantity,
+					"Category name":    val.Category.Category_name,
+					// "Product Image":    val.ImagePath,
+					"Product Status": val.Status,
+					"category id":    val.CategoryId,
+				})
+			}
 		}
 	}
-
 }
 
 func UploadImage(c *gin.Context) string {
@@ -137,7 +140,7 @@ func UploadImage(c *gin.Context) string {
 
 func AddProducts(c *gin.Context) {
 	var addProduct models.Products
-	var checkCategory models.Categories
+	var checkCategory models.Category
 	// imagepath := UploadImage(c)
 	if err := c.ShouldBindJSON(&addProduct); err != nil {
 		c.JSON(500, gin.H{"error": err})

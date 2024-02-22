@@ -36,9 +36,9 @@ type Products struct {
 	ImagePath   string `json:"p_imagepath"`
 	Status      bool   `json:"p_blocking"`
 	CategoryId  int    `json:"category_id"`
-	Category    Categories
+	Category    Category
 }
-type Categories struct {
+type Category struct {
 	gorm.Model
 	Category_name        string `gorm:"not null" json:"category_name"`
 	Category_description string `gorm:"not null" json:"category_description"`
