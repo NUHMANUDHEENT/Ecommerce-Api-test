@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var AddProduct models.Products
+
 func AdminPage(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "welcome admin page"})
 }
@@ -123,39 +125,42 @@ func ProductList(c *gin.Context) {
 	}
 }
 
-func UploadImage(c *gin.Context) string {
-	file, err := c.FormFile("p_imagepath")
+func UploadImage(c *gin.Context) {
+	file, err := c.MultipartForm()
 	if err != nil {
-		c.JSON(500, gin.H{"error": err})
+		c.JSON(500, gin.H{"error": "failed to fetch images"})
 	}
+	files := file.File["images"]
+	var imagePaths []string
 
-	imagePath := "C:/Users/nuhma/Desktop/Week_Task/1st_project/project_images/" + file.Filename
-	err = c.SaveUploadedFile(file, imagePath)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to upload photo"})
+	for _, val := range files {
+		filePath := "./images/" + val.Filename
+		if err = c.SaveUploadedFile(val, filePath); err != nil {
+			c.JSON(500, "faield to save images")
+		}
+		imagePaths = append(imagePaths, filePath)
 	}
+	AddProduct.ImagePath1 = imagePaths[0]
+	AddProduct.ImagePath2 = imagePaths[1]
+	AddProduct.ImagePath3 = imagePaths[2]
+	if result := initializer.DB.Create(&AddProduct); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert product"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"message": "Product created successfully"})
 
-	return imagePath
+	}
 }
 
 func AddProducts(c *gin.Context) {
-	var addProduct models.Products
 	var checkCategory models.Category
-	// imagepath := UploadImage(c)
-	if err := c.ShouldBindJSON(&addProduct); err != nil {
+	if err := c.ShouldBindJSON(&AddProduct); err != nil {
 		c.JSON(500, gin.H{"error": err})
 	}
-	if err := initializer.DB.First(&checkCategory, addProduct.CategoryId).Error; err != nil {
+	if err := initializer.DB.First(&checkCategory, AddProduct.CategoryId).Error; err != nil {
 		c.JSON(500, "no category found")
 	} else {
-		addProduct.Status = true
-		// fmt.Println(addProduct, "________________________", imagepath)
-		// addProduct.ImagePath = imagepath
-		if result := initializer.DB.Create(&addProduct); result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert product"})
-		} else {
-			c.JSON(http.StatusOK, gin.H{"message": "Product created successfully"})
-		}
+		AddProduct.Status = true
+		c.JSON(http.StatusOK, gin.H{"message": "upload the images"})
 	}
 }
 

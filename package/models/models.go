@@ -33,7 +33,9 @@ type Products struct {
 	Color       string `json:"p_color"`
 	Quantity    int    `json:"p_quantity"`
 	Description string `json:"p_description"`
-	ImagePath   string `json:"p_imagepath"`
+	ImagePath1  string ` json:"p_imagepath"`
+	ImagePath2  string ` json:"p_imagepath"`
+	ImagePath3  string ` json:"p_imagepath"`
 	Status      bool   `json:"p_blocking"`
 	CategoryId  int    `json:"category_id"`
 	Category    Category

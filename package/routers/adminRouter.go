@@ -18,7 +18,8 @@ func AdminRouter(r *gin.RouterGroup) {
 
 	//product managment
 	r.GET("/products", controller.ProductList)
-	r.POST("/products/add_products", controller.AddProducts)
+	r.GET("/products/add_products", controller.AddProducts)
+	r.POST("/products/add_products", controller.UploadImage)
 	r.PATCH("products/edit_products/:ID", controller.EditProducts)
 	r.DELETE("products/delete_products/:ID", controller.DeleteProducts)
 

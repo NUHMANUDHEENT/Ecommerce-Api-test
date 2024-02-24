@@ -121,7 +121,7 @@ func ResendOtp(c *gin.Context) {
 				ExpireAt: time.Now().Add(15 * time.Second),
 			})
 			if err.Error != nil {
-				c.JSON(500, "failed too update data")
+				c.JSON(500, "failed to update data")
 			}
 		}
 	}
