@@ -46,3 +46,19 @@ type Category struct {
 	Category_description string `gorm:"not null" json:"category_description"`
 	Blocking             bool   `gorm:"not null" json:"category_blocking"`
 }
+type Rating struct {
+	gorm.Model
+	Users     int `json:"rating_user"`
+	ProductId int `gorm:"unique" json:"rating_product"`
+	Product   Products
+	Value     int `json:"rating_value"`
+}
+type Review struct {
+	Id        uint
+	UserId    int `json:"review_user"`
+	User      Users
+	ProductId uint `json:"review_product"`
+	Product   Products
+	Review    string `json:"review"`
+	Time      string
+}
