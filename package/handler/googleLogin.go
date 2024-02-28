@@ -9,39 +9,37 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-
-
 func OauthSetup() *oauth2.Config {
 
-    conf := &oauth2.Config{
-        ClientID:     "726393225583-l7p1u41ve5mpc5ssi2kl09c9r4fhjeik.apps.googleusercontent.com",
-        ClientSecret: "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",
-        RedirectURL:  "http://localhost:8081/products",
-        Scopes: []string{
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile",
-        },
-        Endpoint: google.Endpoint,
-    }
-    return conf
+	conf := &oauth2.Config{
+		ClientID:     "1045963824475-g4k95hd785nt0ehes50ukaa8ufnql5j4.apps.googleusercontent.com",
+		ClientSecret: "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",
+		RedirectURL:  "http://localhost:8081/products",
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+		},
+		Endpoint: google.Endpoint,
+	}
+	return conf
 }
 
 func Googlelogin(c *gin.Context) {
-    var googleConfig *oauth2.Config
-    googleConfig = OauthSetup()
-    url := googleConfig.AuthCodeURL("state")
-    // c.Redirect(http.StatusFound, url)
-    fmt.Println("check",url)
+	var googleConfig *oauth2.Config
+	googleConfig = OauthSetup()
 
-    // code := c.Query("code")
-    // fmt.Println("=======>", code)
-    token, err := googleConfig.Exchange(c, "authorization-code")
-    fmt.Println("=====<>",token)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-    c.JSON(http.StatusOK, gin.H{"access_token": token.AccessToken})
+	// Extract the authorization code from the query parameter
+	code := c.Query("code")
+	fmt.Println("---------------", code)
+	// Exchange the authorization code for an access token
+	token, err := googleConfig.Exchange(c, code)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Return the access token
+	c.JSON(http.StatusOK, gin.H{"access_token": token.AccessToken})
 }
 
 // func GoogleCallback(c *gin.Context) {

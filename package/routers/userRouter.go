@@ -2,6 +2,7 @@ package routers
 
 import (
 	"project1/package/controller"
+	"project1/package/handler"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,4 +18,7 @@ func UserGroup(r *gin.RouterGroup) {
 	r.GET("/product/:ID", controller.ProductDetails)
 	r.POST("product/rating", controller.RatingStore)
 	r.POST("product/review", controller.ReviewStore)
+
+	// auth google
+	r.GET("/login",handler.Googlelogin)
 }
