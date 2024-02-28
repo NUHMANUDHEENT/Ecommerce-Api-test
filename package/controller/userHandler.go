@@ -15,9 +15,6 @@ import (
 var LogJs models.Users
 var otp string
 
-func LoadingPage(c *gin.Context) {
-	c.JSON(200, gin.H{"name": "Welcome to loading page"})
-}
 func UserSignUp(c *gin.Context) {
 	LogJs = models.Users{}
 	var otpStore models.OtpMail

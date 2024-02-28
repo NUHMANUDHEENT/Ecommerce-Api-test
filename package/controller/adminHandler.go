@@ -152,6 +152,7 @@ func UploadImage(c *gin.Context) {
 }
 
 func AddProducts(c *gin.Context) {
+	AddProduct = models.Products{}
 	var checkCategory models.Category
 	if err := c.ShouldBindJSON(&AddProduct); err != nil {
 		c.JSON(500, gin.H{"error": err})
