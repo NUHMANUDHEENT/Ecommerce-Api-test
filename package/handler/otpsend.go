@@ -15,8 +15,6 @@ func GenerateOtp() string {
 	return fmt.Sprintf("%06d", rand.Intn(1000000))
 }
 
-//============================= END =======================================
-
 // ====================== Sending OTP to User Mail =========================
 func SendOtp(email, otp string) error {
 	fmt.Println("======(", email, otp, ")===========")
