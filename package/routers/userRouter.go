@@ -20,5 +20,11 @@ func UserGroup(r *gin.RouterGroup) {
 	r.POST("product/review", controller.ReviewStore)
 
 	// auth google
-	r.GET("/login",handler.Googlelogin)
+	r.GET("/login", handler.Googlelogin)
+
+	//user profile
+	r.GET("/user/profile/:ID", controller.UserProfile)
+	r.POST("/user/address", controller.AddressStore)
+	r.PATCH("/user/address/:ID", controller.AddressEdit)
+	r.DELETE("/user/address/:ID", controller.AddressDelete)
 }
