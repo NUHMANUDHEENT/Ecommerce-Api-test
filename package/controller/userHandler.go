@@ -40,7 +40,7 @@ func UserSignUp(c *gin.Context) {
 					Otp:       otp,
 					Email:     LogJs.Email,
 					CreatedAt: time.Now(),
-					ExpireAt:  time.Now().Add(15 * time.Second),
+					ExpireAt:  time.Now().Add(30 * time.Second),
 				}
 				err := initializer.DB.Create(&otpStore)
 				if err.Error != nil {

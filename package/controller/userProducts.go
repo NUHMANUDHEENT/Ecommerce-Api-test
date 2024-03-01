@@ -36,7 +36,7 @@ func ProductDetails(c *gin.Context) {
 	var productdetails models.Products
 	id := c.Param("ID")
 	if err := initializer.DB.First(&productdetails, id).Error; err != nil {
-		c.JSON(500, "product not available now")
+		c.JSON(500, "Can't see product")
 	} else {
 		//prodcut full details
 		c.JSON(200, "product details")
@@ -56,7 +56,7 @@ func ProductDetails(c *gin.Context) {
 				"Stock Status": "Out of Stock"})
 		} else {
 			c.JSON(200, gin.H{
-				"Stock Status": "The item is currently available"})
+			"Stock Status": "Item is currently available"})
 		}
 		// rating of the prodects
 		rating := RatingCalc(id, c)
@@ -65,6 +65,7 @@ func ProductDetails(c *gin.Context) {
 		})
 		// review of the product
 		ReviewView(id, c)
+
 		// related products
 		for _, val := range products {
 			if productdetails.CategoryId == int(val.Category.ID) {

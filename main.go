@@ -14,7 +14,7 @@ func init() {
 
 func main() {
 	router := gin.Default()
-
+	
 	user := router.Group("/")
 	routers.UserGroup(user)
 

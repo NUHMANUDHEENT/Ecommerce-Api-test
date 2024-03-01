@@ -17,7 +17,7 @@ func AdminLogin(c *gin.Context) {
 		c.JSON(501, gin.H{"error": "error binding data"})
 	}
 	if LogJs.Username == "nuhman1111" && LogJs.Password == "nuhman@1234" {
-		c.JSON(202, gin.H{"message": "succesfully login"})
+		c.JSON(202, gin.H{"message": "successfully logged"})
 	} else {
 		c.JSON(501, gin.H{"error": "invalid username or password"})
 	}

@@ -27,7 +27,7 @@ func SendOtp(email, otp string) error {
 	d := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("APPEMAIL"), os.Getenv("APPPASSWORD"))
 
 	if err := d.DialAndSend(m); err != nil {
-		fmt.Println("--------------", err, os.Getenv("APPEMAIL"), "------------------")
+		fmt.Println("--------------", err, "------------------")
 		return err
 	}
 	return nil
