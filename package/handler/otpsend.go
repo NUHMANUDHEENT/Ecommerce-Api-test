@@ -17,7 +17,6 @@ func GenerateOtp() string {
 
 // ====================== Sending OTP to User Mail =========================
 func SendOtp(email, otp string) error {
-	fmt.Println("======(", email, otp, ")===========")
 	m := gomail.NewMessage()
 	m.SetHeader("From", "nuhmotp@gmail.com")
 	m.SetHeader("To", email)
@@ -34,4 +33,3 @@ func SendOtp(email, otp string) error {
 
 }
 
-//================================ END =========================================
