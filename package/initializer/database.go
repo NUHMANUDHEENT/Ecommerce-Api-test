@@ -10,7 +10,8 @@ import (
 )
 
 var DB gorm.DB
- //=================== connect to database ================
+
+// =================== connect to database ================
 func LoadDatabase() {
 	dsn := os.Getenv("DSN")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -19,6 +20,6 @@ func LoadDatabase() {
 	}
 	DB = *db
 	DB.AutoMigrate(&models.Users{}, &models.Products{}, &models.OtpMail{}, &models.Rating{},
-		&models.Review{}, &models.Category{}, &models.Address{})
+		&models.Review{}, &models.Category{}, &models.Address{}, &models.Cart{})
 
 }

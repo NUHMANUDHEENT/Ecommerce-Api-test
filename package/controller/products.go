@@ -60,7 +60,6 @@ func UploadImage(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert product"})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "Product created successfully"})
-
 	}
 }
 

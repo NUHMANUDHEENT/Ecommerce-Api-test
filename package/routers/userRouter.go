@@ -28,4 +28,8 @@ func UserGroup(r *gin.RouterGroup) {
 	r.POST("/user/address", controller.AddressStore)
 	r.PATCH("/user/address/:ID", controller.AddressEdit)
 	r.DELETE("/user/address/:ID", controller.AddressDelete)
+
+	//================= User cart ======================
+	r.POST("/cart/:ID",controller.CartStore)
+	r.GET("/cart",controller.CartView)
 }

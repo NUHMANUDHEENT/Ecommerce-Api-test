@@ -73,3 +73,9 @@ type Address struct {
 	UserId  int    `json:"user_id"`
 	User    Users
 }
+type Cart struct {
+	UserId    int `json:"user_id"`
+	User      Users
+	ProductId int
+	Product   Products
+}
