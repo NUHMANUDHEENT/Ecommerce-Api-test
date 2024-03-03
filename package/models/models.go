@@ -78,4 +78,12 @@ type Cart struct {
 	User      Users
 	ProductId int
 	Product   Products
+	Quantity  int
+}
+type Coupon struct {
+	gorm.Model
+	Code     string `gorm:"unique" json:"code"`
+	Discount float64 `json:"discount"`
+	ValidFrom time.Time`json:"valid_from"`
+	ValidTo time.Time `json:"valid_to"`
 }

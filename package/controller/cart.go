@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"project1/package/initializer"
 	"project1/package/models"
 	"strconv"
@@ -40,7 +41,7 @@ func CartView(c *gin.Context) {
 			"error": "failed to bind data",
 		})
 	} else {
-		if err := initializer.DB.Joins("Products").Find(&cartView).Where("UserId=?", cartBind.UserId).Error; err != nil {
+		if err := initializer.DB.Joins("Product").Find(&cartView).Where("UserId=?", cartBind.UserId).Error; err != nil {
 			c.JSON(500, gin.H{
 				"error": "failed to fetch data",
 			})
@@ -55,6 +56,27 @@ func CartView(c *gin.Context) {
 			}
 			c.JSON(200, gin.H{
 				"Total Amount": totalAmount,
+			})
+		}
+	}
+}
+func CartProductRemove(c *gin.Context) {
+	var ProductRemove models.Cart
+	id := c.Param("ID")
+	c.ShouldBindJSON(&ProductRemove)
+	if err := initializer.DB.First(&ProductRemove, "product_id=? AND user_id=?", id, ProductRemove.UserId).Error; err != nil {
+		c.JSON(500, gin.H{
+			"Error": "can't find product",
+		})
+	} else {
+		fmt.Println("----------", ProductRemove)
+		if err := initializer.DB.Where("product_id=? AND user_id=?", id, ProductRemove.UserId).Delete(&ProductRemove).Error; err != nil {
+			c.JSON(500, gin.H{
+				"Error": "failed to remove product",
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"message": "product remove successfully",
 			})
 		}
 	}

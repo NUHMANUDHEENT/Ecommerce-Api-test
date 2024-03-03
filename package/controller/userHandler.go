@@ -126,18 +126,18 @@ func ResendOtp(c *gin.Context) {
 
 func UserLogin(c *gin.Context) {
 	LogJs = models.Users{}
-	var logCheck models.Users
+	var userPass models.Users
 	err := c.ShouldBindJSON(&LogJs)
 	if err != nil {
 		c.JSON(501, gin.H{"error": "error binding data"})
 	}
 	fmt.Println(LogJs)
-	initializer.DB.First(&logCheck, "email=?", LogJs.Email)
-	err = bcrypt.CompareHashAndPassword([]byte(logCheck.Password), []byte(LogJs.Password))
+	initializer.DB.First(&userPass, "email=?", LogJs.Email)
+	err = bcrypt.CompareHashAndPassword([]byte(userPass.Password), []byte(LogJs.Password))
 	if err != nil {
 		c.JSON(501, gin.H{"Error": "invalid username or password"})
 	} else {
-		if !logCheck.Blocking {
+		if !userPass.Blocking {
 			c.JSON(300, "User blocked")
 		} else {
 			c.JSON(200, gin.H{"Message": "login successfully"})

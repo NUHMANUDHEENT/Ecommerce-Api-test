@@ -13,6 +13,9 @@ func UserGroup(r *gin.RouterGroup) {
 	r.POST("/user/signup", controller.UserSignUp)
 	r.POST("/user/signup/otp", controller.OtpCheck)
 	r.POST("/user/signup/resend_otp", controller.ResendOtp)
+	r.GET("/user/forgotpass", controller.ForgotUserCheck)
+	r.GET("/user/forgotpass/otp", controller.ForgotOtpCheck)
+	r.PATCH("/user/forgotpass", controller.NewPasswordSet)
 
 	// ================= product page ===============
 	r.GET("/", controller.ProductsPage)
@@ -30,6 +33,7 @@ func UserGroup(r *gin.RouterGroup) {
 	r.DELETE("/user/address/:ID", controller.AddressDelete)
 
 	//================= User cart ======================
-	r.POST("/cart/:ID",controller.CartStore)
-	r.GET("/cart",controller.CartView)
+	r.POST("/cart/:ID", controller.CartStore)
+	r.GET("/cart", controller.CartView)
+	r.PATCH("/cart/product_remove/:ID", controller.CartProductRemove)
 }

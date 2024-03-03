@@ -31,4 +31,9 @@ func AdminRouter(r *gin.RouterGroup) {
 	r.DELETE("/categories/delete_category/:ID", controller.DeleteCategories)
 	r.PATCH("/categories/block_category/:ID", controller.BlockCategory)
 
+	//===================== Coupon managment ====================
+	r.POST("/coupon", controller.CouponStore)
+	
+
+
 }
