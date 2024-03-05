@@ -22,7 +22,6 @@ func ForgotUserCheck(c *gin.Context) {
 	if err != nil {
 		c.JSON(501, gin.H{"error": "json binding error"})
 	}
-
 	if err := initializer.DB.First(&userCheck, "email=?", userCheck.Email).Error; err != nil {
 		c.JSON(501, gin.H{"error": "user not found"})
 	} else {
@@ -80,6 +79,7 @@ func ForgotOtpCheck(c *gin.Context) {
 
 func NewPasswordSet(c *gin.Context) {
 	var newPassSet models.Users
+	fmt.Println("==============-----------", userCheck)
 	err := c.ShouldBindJSON(&newPassSet)
 	if err != nil {
 		c.JSON(500, gin.H{

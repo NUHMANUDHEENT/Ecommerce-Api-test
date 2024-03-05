@@ -5,6 +5,7 @@ import (
 	"project1/package/initializer"
 	"project1/package/models"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,7 +46,8 @@ func AddressEdit(c *gin.Context) {
 }
 func AddressDelete(c *gin.Context) {
 	var deleteAddress models.Address
-	id := c.Param("ID")
+	session := sessions.Default(c)
+	id := session.Get("userid")
 	err := initializer.DB.First(&deleteAddress, id)
 	if err.Error != nil {
 		c.JSON(500, gin.H{"error": "can't find address"})
@@ -80,6 +82,32 @@ func UserProfile(c *gin.Context) {
 				"user city":     val.City,
 				"user pin code": val.Pincode,
 			})
+		}
+	}
+}
+func EditUserProfile(c *gin.Context) {
+	var editProfile models.Users
+	id := c.Param("ID")
+	if err := initializer.DB.First(&editProfile, id).Error; err != nil {
+		c.JSON(500, gin.H{
+			"Error": "user not found",
+		})
+	} else {
+		err := c.ShouldBindJSON(&editProfile)
+		if err != nil {
+			c.JSON(500, gin.H{
+				"Error": "failed to bind data",
+			})
+		} else {
+			if err := initializer.DB.Save(&editProfile).Error; err != nil {
+				c.JSON(500, gin.H{
+					"Error": "failed to update data",
+				})
+			} else {
+				c.JSON(500, gin.H{
+					"Error": "updated data",
+				})
+			}
 		}
 	}
 }

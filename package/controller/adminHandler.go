@@ -2,8 +2,10 @@ package controller
 
 import (
 	"project1/package/initializer"
+	"project1/package/middleware"
 	"project1/package/models"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,14 +14,34 @@ func AdminPage(c *gin.Context) {
 }
 
 func AdminLogin(c *gin.Context) {
-	err := c.ShouldBindJSON(&LogJs)
-	if err != nil {
-		c.JSON(501, gin.H{"error": "error binding data"})
-	}
-	if LogJs.Username == "nuhman1111" && LogJs.Password == "nuhman@1234" {
-		c.JSON(202, gin.H{"message": "successfully logged"})
+	session := sessions.Default(c)
+	check := session.Get("admin")
+	if check != nil {
+		c.JSON(200, "Already logged")
 	} else {
-		c.JSON(501, gin.H{"error": "invalid username or password"})
+		err := c.ShouldBindJSON(&LogJs)
+		if err != nil {
+			c.JSON(501, gin.H{"error": "error binding data"})
+		}
+		if LogJs.Email == "nuhman@gmail.com" && LogJs.Password == "nuhman@1234" {
+			middleware.SessionCreate("nuhman@gmail.com", "admin", c)
+			c.JSON(202, gin.H{"message": "successfully logged"})
+		} else {
+			c.JSON(501, gin.H{"error": "invalid username or password"})
+		}
+	}
+}
+func AdminLogout(c *gin.Context) {
+	session := sessions.Default(c)
+	check := session.Get("admin")
+	if check == nil {
+		c.JSON(200, "Unauthorized")
+	} else {
+		session.Delete("admin")
+		session.Save()
+		c.JSON(200, gin.H{
+			"message": "logout successfull",
+		})
 	}
 }
 func UserList(c *gin.Context) {
@@ -29,7 +51,6 @@ func UserList(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"ID":         val.ID,
 			"name":       val.Name,
-			"username":   val.Username,
 			"Email":      val.Email,
 			"gender":     val.Gender,
 			"created At": val.CreatedAt,
