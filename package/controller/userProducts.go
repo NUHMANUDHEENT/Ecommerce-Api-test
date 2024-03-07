@@ -126,6 +126,7 @@ func ReviewStore(c *gin.Context) {
 	if err := c.ShouldBindJSON(&reviewStore); err != nil {
 		c.JSON(500, "failed to bind data")
 	} else {
+		
 		reviewStore.Time = time.Now().Format("2006-01-02")
 		if err := initializer.DB.Create(&reviewStore).Error; err != nil {
 			c.JSON(500, "failed to store review")

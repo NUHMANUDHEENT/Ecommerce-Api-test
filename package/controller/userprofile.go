@@ -71,6 +71,7 @@ func UserProfile(c *gin.Context) {
 			"user name":  userProfile.Name,
 			"user email": userProfile.Email,
 			"user phone": userProfile.Phone,
+			"user id":    userProfile.ID,
 		})
 	}
 	if err := initializer.DB.Find(&userAddress, "user_id=?", id).Error; err != nil {
@@ -81,6 +82,8 @@ func UserProfile(c *gin.Context) {
 				"user address":  val.Address,
 				"user city":     val.City,
 				"user pin code": val.Pincode,
+				"user id":       val.ID,
+				"user phone":    val.Phone,
 			})
 		}
 	}

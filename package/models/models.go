@@ -30,7 +30,7 @@ type Products struct {
 	Price       uint   `json:"p_price"`
 	Size        string `json:"p_size"`
 	Color       string `json:"p_color"`
-	Quantity    int    `json:"p_quantity"`
+	Quantity    uint   `json:"p_quantity"`
 	Description string `json:"p_description"`
 	ImagePath1  string
 	ImagePath2  string
@@ -73,16 +73,32 @@ type Address struct {
 	User    Users
 }
 type Cart struct {
+	Id        uint
 	UserId    int `json:"user_id"`
 	User      Users
 	ProductId int
 	Product   Products
-	Quantity  int
+	Quantity  uint
 }
 type Coupon struct {
 	gorm.Model
-	Code     string `gorm:"unique" json:"code"`
-	Discount float64 `json:"discount"`
-	ValidFrom time.Time`json:"valid_from"`
-	ValidTo time.Time `json:"valid_to"`
+	Code      string    `gorm:"unique" json:"code"`
+	Discount  float64   `json:"discount"`
+	ValidFrom time.Time `json:"valid_from"`
+	ValidTo   time.Time `json:"valid_to"`
+}
+type Order struct {
+	gorm.Model
+	UserId        int `json:"order_cart"`
+	User          Users
+	ProductId     int `json:"order_product"`
+	Product       Products
+	AddressId     int `json:"order_address"`
+	Address       Address
+	CouponCode    string `json:"order_coupon"`
+	OrderPayment  string `json:"order_payment"`
+	OrderQuantity uint
+	OrderAmount   float64
+	OrderStatus   string
+	OrderCancelReason string
 }
