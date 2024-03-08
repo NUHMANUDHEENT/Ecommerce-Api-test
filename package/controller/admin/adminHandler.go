@@ -14,16 +14,17 @@ func AdminPage(c *gin.Context) {
 }
 
 func AdminLogin(c *gin.Context) {
+	var AdminCheck models.Users
 	session := sessions.Default(c)
 	check := session.Get("admin")
 	if check != nil {
 		c.JSON(200, "Already logged")
 	} else {
-		err := c.ShouldBindJSON(&LogJs)
+		err := c.ShouldBindJSON(&AdminCheck)
 		if err != nil {
 			c.JSON(501, gin.H{"error": "error binding data"})
 		}
-		if LogJs.Email == "nuhman@gmail.com" && LogJs.Password == "nuhman@1234" {
+		if AdminCheck.Email == "nuhman@gmail.com" && AdminCheck.Password == "nuhman@1234" {
 			middleware.SessionCreate("nuhman@gmail.com", "admin", c)
 			c.JSON(202, gin.H{"message": "successfully logged"})
 		} else {

@@ -1,8 +1,7 @@
 package routers
 
-
 import (
-	"project1/package/controller"
+	controller "project1/package/controller/user"
 	"project1/package/handler"
 	"project1/package/middleware"
 

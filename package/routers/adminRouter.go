@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"project1/package/controller"
+	controller "project1/package/controller/admin"
 	"project1/package/middleware"
 
 	"github.com/gin-gonic/gin"
