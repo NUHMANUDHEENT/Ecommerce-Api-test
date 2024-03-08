@@ -9,7 +9,7 @@ import (
 
 var roleAdmin = "admin"
 
-func AdminRouter(r *gin.RouterGroup) {
+func AdminGroup(r *gin.RouterGroup) {
 	//================ admin authentication=======================
 	r.GET("/login", controller.AdminLogin)
 	r.GET("/logout", controller.AdminLogout)
@@ -36,11 +36,13 @@ func AdminRouter(r *gin.RouterGroup) {
 	r.PATCH("/categories/block_category/:ID", middleware.AuthMiddleware(roleAdmin), controller.BlockCategory)
 
 	//===================== Coupon managment ====================
-	r.POST("/coupon", controller.CouponStore)
+	r.GET("/coupon", middleware.AuthMiddleware(roleAdmin), controller.CouponView)
+	r.POST("/coupon", middleware.AuthMiddleware(roleAdmin), controller.CouponStore)
+	r.DELETE("/coupon/:ID", middleware.AuthMiddleware(roleAdmin), controller.CouponDelete)
 
 	// =================== order managment ==============
-	r.GET("/orders", controller.AdminOrdersView)
-	r.PATCH("/orderstatus/:ID", controller.AdminOrderStatus)
-	r.PATCH("/ordercancel/:ID", controller.AdminCancelOrder)
+	r.GET("/orders", middleware.AuthMiddleware(roleAdmin), controller.AdminOrdersView)
+	r.PATCH("/orderstatus/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminOrderStatus)
+	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminCancelOrder)
 
 }

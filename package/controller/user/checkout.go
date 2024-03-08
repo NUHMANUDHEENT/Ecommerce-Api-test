@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"project1/package/initializer"
 	"project1/package/models"
@@ -12,13 +11,8 @@ import (
 )
 
 func CheckOut(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("ID"))
-	if err != nil {
-		fmt.Println("failed to parse")
-	}
-
 	var cartItems []models.Cart
-	initializer.DB.Preload("Product").Where("user_id=?", id).Find(&cartItems)
+	initializer.DB.Preload("Product").Where("user_id=?", UserData.ID).Find(&cartItems)
 	if len(cartItems) == 0 {
 		c.JSON(404, "no cart data found for this user")
 		return
@@ -67,7 +61,7 @@ func CheckOut(c *gin.Context) {
 			val.Product.Quantity -= val.Quantity
 
 			order := models.Order{
-				UserId:        id,
+				UserId:        int(UserData.ID),
 				OrderPayment:  paymentMethod,
 				AddressId:     int(Address),
 				ProductId:     val.ProductId,
@@ -94,7 +88,7 @@ func CheckOut(c *gin.Context) {
 				return
 			}
 
-			if err := initializer.DB.Where("user_id =? AND product_id=?", id, val.ProductId).Delete(&models.Cart{}); err.Error != nil {
+			if err := initializer.DB.Where("user_id =? AND product_id=?", UserData.ID, val.ProductId).Delete(&models.Cart{}); err.Error != nil {
 				c.JSON(http.StatusBadRequest, "faild to delete datas in cart.")
 				return
 			}
@@ -110,8 +104,7 @@ func CheckOut(c *gin.Context) {
 
 func OrderView(c *gin.Context) {
 	var orders []models.Order
-	id := c.Param("ID")
-	initializer.DB.Where("user_id=?", id).Joins("Product").Find(&orders)
+	initializer.DB.Where("user_id=?", UserData.ID).Joins("Product").Find(&orders)
 	for _, order := range orders {
 		c.JSON(200, gin.H{
 			"ID":      order.ID,
@@ -124,8 +117,7 @@ func OrderView(c *gin.Context) {
 
 func OrderDetails(c *gin.Context) {
 	var order models.Order
-	id := c.Param("ID")
-	initializer.DB.Preload("Product").Where("id=?", id).First(&order)
+	initializer.DB.Preload("Product").Where("id=?", UserData.ID).First(&order)
 	c.JSON(200, gin.H{
 		"Product":         order.Product.Name,
 		"Amount":          order.OrderAmount,
@@ -138,20 +130,31 @@ func OrderDetails(c *gin.Context) {
 }
 
 func CancelOrder(c *gin.Context) {
-	id := c.Param("ID")
 	var order models.Order
+	var productQuantity models.Order
+	id := c.Param("ID")
 	order.OrderCancelReason = c.Request.FormValue("reason")
 	if order.OrderCancelReason == "" {
 		c.JSON(500, "please give the reason")
-	}else{
-		if err:= initializer.DB.Where("id=?", id).First(&order).Error;err!=nil{
-			c.JSON(500,gin.H{
-				"Error":"can't find order",
+	} else {
+		if err := initializer.DB.Where("id=?", id).First(&order).Error; err != nil {
+			c.JSON(500, gin.H{
+				"Error": "can't find order",
 			})
 			return
 		}
 		order.OrderStatus = "cancelled"
-		initializer.DB.Save(&order)
+		if err := initializer.DB.Save(&order).Error; err != nil {
+			c.JSON(500, "Failed to update status")
+		}
+		if err := initializer.DB.First(&productQuantity, order.ProductId).Error; err != nil {
+			c.JSON(500, "failed to fetch product details")
+			return
+		}
+		productQuantity.OrderQuantity += order.OrderQuantity
+		if err := initializer.DB.Save(&productQuantity).Error; err != nil {
+			c.JSON(500, "failed to add quantity")
+		}
 		c.JSON(200, "Order Cancelled.")
 	}
 }

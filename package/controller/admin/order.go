@@ -23,6 +23,7 @@ func AdminOrdersView(c *gin.Context) {
 func AdminCancelOrder(c *gin.Context) {
 	id := c.Param("ID")
 	var order models.Order
+	var productQuantity models.Products
 	if err := initializer.DB.Where("id=?", id).First(&order).Error; err != nil {
 		c.JSON(500, gin.H{
 			"Error": "can't find order",
@@ -31,6 +32,12 @@ func AdminCancelOrder(c *gin.Context) {
 	}
 	order.OrderStatus = "cancelled"
 	initializer.DB.Save(&order)
+	if err:= initializer.DB.First(&productQuantity, order.ProductId).Error;err!=nil{
+		c.JSON(500,"failed to fetch product details")
+      return
+	}
+	productQuantity.Quantity += order.OrderQuantity
+	initializer.DB.Save(&productQuantity)
 	c.JSON(200, "Order Cancelled.")
 }
 
@@ -44,7 +51,7 @@ func AdminOrderStatus(c *gin.Context) {
 		})
 		return
 	}
-	if err := initializer.DB.Where("id=?", id).First(&orderStatus).Error; err != nil {
+	if err := initializer.DB.First(&orderStatus,id).Error; err != nil {
 		c.JSON(500, gin.H{
 			"Error": "can't find order",
 		})

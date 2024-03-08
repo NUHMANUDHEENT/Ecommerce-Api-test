@@ -9,15 +9,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func UserProfile(c *gin.Context) {
+	var userProfile models.Users
+	var userAddress []models.Address
+	if err := initializer.DB.First(&userProfile, UserData.ID).Error; err != nil {
+		c.JSON(500, "failed to find user")
+	} else {
+		c.JSON(200, gin.H{
+			"user name":  userProfile.Name,
+			"user email": userProfile.Email,
+			"user phone": userProfile.Phone,
+			"user id":    userProfile.ID,
+		})
+	}
+	if err := initializer.DB.Find(&userAddress, "user_id=?", UserData.ID).Error; err != nil {
+		c.JSON(500, "failed to find address")
+	} else {
+		for _, val := range userAddress {
+			c.JSON(200, gin.H{
+				"user address":  val.Address,
+				"user city":     val.City,
+				"user pin code": val.Pincode,
+				"user id":       val.ID,
+				"user phone":    val.Phone,
+			})
+		}
+	}
+}
 func AddressStore(c *gin.Context) {
 	var userCheck models.Users
 	var addAddress models.Address
 	if err := c.ShouldBindJSON(&addAddress); err != nil {
 		c.JSON(500, gin.H{"error": err})
 	}
-	if err := initializer.DB.First(&userCheck, addAddress.UserId).Error; err != nil {
+	if err := initializer.DB.First(&userCheck, UserData.ID).Error; err != nil {
 		c.JSON(500, "no user found")
 	} else {
+		addAddress.UserId = int(UserData.ID)
 		if result := initializer.DB.Create(&addAddress); result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add address"})
 		} else {
@@ -60,38 +88,9 @@ func AddressDelete(c *gin.Context) {
 		}
 	}
 }
-func UserProfile(c *gin.Context) {
-	var userProfile models.Users
-	var userAddress []models.Address
-	id := c.Param("ID")
-	if err := initializer.DB.First(&userProfile, id).Error; err != nil {
-		c.JSON(500, "failed to find user")
-	} else {
-		c.JSON(200, gin.H{
-			"user name":  userProfile.Name,
-			"user email": userProfile.Email,
-			"user phone": userProfile.Phone,
-			"user id":    userProfile.ID,
-		})
-	}
-	if err := initializer.DB.Find(&userAddress, "user_id=?", id).Error; err != nil {
-		c.JSON(500, "failed to find address")
-	} else {
-		for _, val := range userAddress {
-			c.JSON(200, gin.H{
-				"user address":  val.Address,
-				"user city":     val.City,
-				"user pin code": val.Pincode,
-				"user id":       val.ID,
-				"user phone":    val.Phone,
-			})
-		}
-	}
-}
 func EditUserProfile(c *gin.Context) {
 	var editProfile models.Users
-	id := c.Param("ID")
-	if err := initializer.DB.First(&editProfile, id).Error; err != nil {
+	if err := initializer.DB.First(&editProfile, UserData.ID).Error; err != nil {
 		c.JSON(500, gin.H{
 			"Error": "user not found",
 		})

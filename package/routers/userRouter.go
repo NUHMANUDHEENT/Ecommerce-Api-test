@@ -32,25 +32,25 @@ func UserGroup(r *gin.RouterGroup) {
 	r.POST("/product/review", middleware.AuthMiddleware(roleuser), controller.ReviewStore)
 
 	//================user profile=================
-	r.GET("/user/profile/:ID", middleware.AuthMiddleware(roleuser), controller.UserProfile)
+	r.GET("/user/profile", middleware.AuthMiddleware(roleuser), controller.UserProfile)
 	r.POST("/user/address", middleware.AuthMiddleware(roleuser), controller.AddressStore)
 	r.PATCH("/user/address/:ID", middleware.AuthMiddleware(roleuser), controller.AddressEdit)
 	r.DELETE("/user/address/:ID", middleware.AuthMiddleware(roleuser), controller.AddressDelete)
-	r.PATCH("/user/edit/:ID", middleware.AuthMiddleware(roleuser), controller.EditUserProfile)
+	r.PATCH("/user/edit", middleware.AuthMiddleware(roleuser), controller.EditUserProfile)
 
 	//================= User cart ======================
 	r.POST("/cart/:ID", middleware.AuthMiddleware(roleuser), controller.CartStore)
 	r.GET("/cart", middleware.AuthMiddleware(roleuser), controller.CartView)
 	r.PATCH("/cart/remove/:ID", middleware.AuthMiddleware(roleuser), controller.CartProductDelete)
-	r.PATCH("/cart/addquantity/:ID", controller.CartProductAdd)
-	r.PATCH("/cart/removequantity/:ID", controller.CartProductRemove)
+	r.PATCH("/cart/addquantity/:ID", middleware.AuthMiddleware(roleuser), controller.CartProductAdd)
+	r.PATCH("/cart/removequantity/:ID", middleware.AuthMiddleware(roleuser), controller.CartProductRemove)
 
-	//============================= filter ====================
-	r.GET("/filter", controller.FilterPrice)
+	//============================= filter products ====================
+	r.GET("/filter", middleware.AuthMiddleware(roleuser), controller.SeaechProduct)
 
 	// =======================check out ====================
-	r.GET("/checkout/:ID", controller.CheckOut)
-	r.GET("/orders/:ID", controller.OrderView)
-	r.GET("/orderdetails/:ID", controller.OrderDetails)
-	r.GET("/ordercancel/:ID", controller.CancelOrder)
+	r.GET("/checkout", middleware.AuthMiddleware(roleuser), controller.CheckOut)
+	r.GET("/orders", middleware.AuthMiddleware(roleuser), controller.OrderView)
+	r.GET("/orderdetails/:ID", middleware.AuthMiddleware(roleuser), controller.OrderDetails)
+	r.GET("/ordercancel/:ID", middleware.AuthMiddleware(roleuser), controller.CancelOrder)
 }

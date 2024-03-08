@@ -162,11 +162,10 @@ func UserLogout(c *gin.Context) {
 	session := sessions.Default(c)
 	check := session.Get("user")
 	if check == nil {
-		c.JSON(200, "Unauthorized")
+		c.JSON(200, "Not logged in")
 	} else {
 		UserData = models.Users{}
 		session.Delete("user")
-		session.Delete("userid")
 		session.Save()
 		c.JSON(200, gin.H{
 			"Message": "logout Successfull",

@@ -24,7 +24,7 @@ func main() {
 	routers.UserGroup(user)
 
 	admin := router.Group("/admin")
-	routers.AdminRouter(admin)
+	routers.AdminGroup(admin)
 
 	router.Run(":8080")
 

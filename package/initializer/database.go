@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB gorm.DB
+var DB *gorm.DB
 
 // =================== connect to database ================
 func LoadDatabase() {
@@ -18,7 +18,7 @@ func LoadDatabase() {
 	if err != nil {
 		log.Fatal("...........Failed to connect to database..........")
 	}
-	DB = *db
+	DB = db
 	DB.AutoMigrate(&models.Users{}, &models.Products{}, &models.OtpMail{}, &models.Rating{},
 		&models.Review{}, &models.Category{}, &models.Address{}, &models.Cart{}, &models.Coupon{}, &models.Order{})
 
