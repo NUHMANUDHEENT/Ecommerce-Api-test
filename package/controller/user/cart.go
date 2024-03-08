@@ -24,6 +24,7 @@ func CartView(c *gin.Context) {
 				"product image":    val.Product.ImagePath1,
 				"product quantity": val.Quantity,
 				"product price":    val.Product.Price,
+				"product id":       val.Product.ID,
 			})
 			price := int(val.Quantity) * int(val.Product.Price)
 			totalAmount += price

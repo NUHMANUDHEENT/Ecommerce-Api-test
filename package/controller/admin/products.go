@@ -110,3 +110,9 @@ func DeleteProducts(c *gin.Context) {
 		}
 	}
 }
+func DeleteRecovery(c *gin.Context) {
+	id := c.Param("ID")
+
+	initializer.DB.Unscoped().Model(&models.Products{}).Where("id=?", id).Update("deleted_at", nil)
+	c.JSON(200,"Recoverd.")
+}

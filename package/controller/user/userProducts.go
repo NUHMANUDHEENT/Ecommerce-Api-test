@@ -56,7 +56,7 @@ func ProductDetails(c *gin.Context) {
 				"Stock Status": "Out of Stock"})
 		} else {
 			c.JSON(200, gin.H{
-			"Stock Status": "Item is currently available"})
+				"Stock Status": "Item is currently available"})
 		}
 		// rating of the prodects
 		rating := RatingCalc(id, c)
@@ -68,7 +68,7 @@ func ProductDetails(c *gin.Context) {
 
 		// related products
 		for _, val := range products {
-			if productdetails.CategoryId == int(val.Category.ID) {
+			if productdetails.CategoryId == int(val.Category.ID) && val.ID != productdetails.ID {
 				c.JSON(200, "related products")
 				c.JSON(200, gin.H{
 					"product image": val.ImagePath1,
@@ -126,7 +126,7 @@ func ReviewStore(c *gin.Context) {
 	if err := c.ShouldBindJSON(&reviewStore); err != nil {
 		c.JSON(500, "failed to bind data")
 	} else {
-		
+
 		reviewStore.Time = time.Now().Format("2006-01-02")
 		if err := initializer.DB.Create(&reviewStore).Error; err != nil {
 			c.JSON(500, "failed to store review")

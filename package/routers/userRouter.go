@@ -14,7 +14,7 @@ func UserGroup(r *gin.RouterGroup) {
 	//==============user authenticatio==============
 	r.GET("/user/login", controller.UserLogin)
 	r.GET("/user/logout", controller.UserLogout)
-
+//==================siguo
 	r.POST("/user/signup", controller.UserSignUp)
 	r.POST("/user/signup/otp", controller.OtpCheck)
 	r.POST("/user/signup/resend_otp", controller.ResendOtp)
@@ -26,7 +26,7 @@ func UserGroup(r *gin.RouterGroup) {
 	r.GET("/login", handler.Googlelogin)
 
 	// ================= product page ===============
-	r.GET("/", middleware.AuthMiddleware(roleuser), controller.ProductsPage)
+	r.GET("/", controller.ProductsPage)
 	r.GET("/product/:ID", middleware.AuthMiddleware(roleuser), controller.ProductDetails)
 	r.POST("/product/rating", middleware.AuthMiddleware(roleuser), controller.RatingStore)
 	r.POST("/product/review", middleware.AuthMiddleware(roleuser), controller.ReviewStore)
