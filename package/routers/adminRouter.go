@@ -38,4 +38,9 @@ func AdminRouter(r *gin.RouterGroup) {
 	//===================== Coupon managment ====================
 	r.POST("/coupon", controller.CouponStore)
 
+	// =================== order managment ==============
+	r.GET("/orders", controller.AdminOrdersView)
+	r.PATCH("/orderstatus/:ID", controller.AdminOrderStatus)
+	r.PATCH("/ordercancel/:ID", controller.AdminCancelOrder)
+
 }
