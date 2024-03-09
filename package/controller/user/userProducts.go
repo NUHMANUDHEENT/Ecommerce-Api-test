@@ -36,7 +36,7 @@ func ProductDetails(c *gin.Context) {
 	var productdetails models.Products
 	id := c.Param("ID")
 	if err := initializer.DB.First(&productdetails, id).Error; err != nil {
-		c.JSON(500, "Can't see product")
+		c.JSON(404, "Can't see product")
 	} else {
 		//prodcut full details
 		c.JSON(200, "product details")
@@ -93,7 +93,7 @@ func RatingStore(c *gin.Context) {
 		if err := initializer.DB.Create(&ratingValue).Error; err != nil {
 			c.JSON(500, "failed to store data")
 		} else {
-			c.JSON(200, "Thanks for rating")
+			c.JSON(201, "Thanks for rating")
 		}
 	} else {
 		err := initializer.DB.Model(&ratingStore).Where("product_id=?", ratingValue.ProductId).Updates(models.Rating{
@@ -103,7 +103,7 @@ func RatingStore(c *gin.Context) {
 		if err.Error != nil {
 			c.JSON(500, "failed to update data")
 		} else {
-			c.JSON(200, "Thanks for rating")
+			c.JSON(201, "Thanks for rating")
 		}
 	}
 	ratingStore = models.Rating{}
@@ -131,7 +131,7 @@ func ReviewStore(c *gin.Context) {
 		if err := initializer.DB.Create(&reviewStore).Error; err != nil {
 			c.JSON(500, "failed to store review")
 		} else {
-			c.JSON(200, "Thank for your feedback")
+			c.JSON(201, "Thank for your feedback")
 		}
 	}
 }

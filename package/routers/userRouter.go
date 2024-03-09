@@ -14,10 +14,10 @@ func UserGroup(r *gin.RouterGroup) {
 	//==============user authenticatio==============
 	r.GET("/user/login", controller.UserLogin)
 	r.GET("/user/logout", controller.UserLogout)
-//==================siguo
+	//==================siguo
 	r.POST("/user/signup", controller.UserSignUp)
 	r.POST("/user/signup/otp", controller.OtpCheck)
-	r.POST("/user/signup/resend_otp", controller.ResendOtp)
+	r.POST("/user/signup/resend", controller.ResendOtp)
 	r.GET("/user/forgotpass", controller.ForgotUserCheck)
 	r.GET("/user/forgotpass/otp", controller.ForgotOtpCheck)
 	r.PATCH("/user/forgotpass", controller.NewPasswordSet)
@@ -49,8 +49,8 @@ func UserGroup(r *gin.RouterGroup) {
 	r.GET("/filter", middleware.AuthMiddleware(roleuser), controller.SeaechProduct)
 
 	// =======================check out ====================
-	r.GET("/checkout", middleware.AuthMiddleware(roleuser), controller.CheckOut)
+	r.POST("/checkout", middleware.AuthMiddleware(roleuser), controller.CheckOut)
 	r.GET("/orders", middleware.AuthMiddleware(roleuser), controller.OrderView)
 	r.GET("/orderdetails/:ID", middleware.AuthMiddleware(roleuser), controller.OrderDetails)
-	r.GET("/ordercancel/:ID", middleware.AuthMiddleware(roleuser), controller.CancelOrder)
+	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleuser), controller.CancelOrder)
 }

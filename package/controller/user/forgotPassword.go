@@ -14,6 +14,7 @@ import (
 
 // var forgotPassOtp string
 var userCheck models.Users
+var otpValid = false
 
 func ForgotUserCheck(c *gin.Context) {
 	userCheck = models.Users{}
@@ -71,6 +72,7 @@ func ForgotOtpCheck(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired OTP"})
 		return
 	} else {
+		otpValid = true
 		c.JSON(200, gin.H{
 			"message": "Enter new password",
 		})
@@ -78,30 +80,38 @@ func ForgotOtpCheck(c *gin.Context) {
 }
 
 func NewPasswordSet(c *gin.Context) {
-	var newPassSet models.Users
-	fmt.Println("==============-----------", userCheck)
-	err := c.ShouldBindJSON(&newPassSet)
-	if err != nil {
-		c.JSON(500, gin.H{
-			"Error": "failed to bind data",
-		})
-	} else {
-		HashPass, err := bcrypt.GenerateFromPassword([]byte(newPassSet.Password), bcrypt.DefaultCost)
+	if otpValid {
+
+		var newPassSet models.Users
+		fmt.Println("==============-----------", userCheck)
+		err := c.ShouldBindJSON(&newPassSet)
 		if err != nil {
-			c.JSON(500, "failed to hash password")
+			c.JSON(500, gin.H{
+				"Error": "failed to bind data",
+			})
 		} else {
-			if err := initializer.DB.Model(&userCheck).Where("email=?", userCheck.Email).Updates(models.Users{
-				Password: string(HashPass),
-			}).Error; err != nil {
-				c.JSON(500, gin.H{
-					"Error": "failed to update data",
-				})
+			HashPass, err := bcrypt.GenerateFromPassword([]byte(newPassSet.Password), bcrypt.DefaultCost)
+			if err != nil {
+				c.JSON(500, "failed to hash password")
 			} else {
-				c.JSON(200, gin.H{
-					"message": "password updated",
-				})
+				if err := initializer.DB.Model(&userCheck).Where("email=?", userCheck.Email).Updates(models.Users{
+					Password: string(HashPass),
+				}).Error; err != nil {
+					c.JSON(500, gin.H{
+						"Error": "failed to update data",
+					})
+				} else {
+					c.JSON(201, gin.H{
+						"message": "password updated",
+					})
+				}
 			}
 		}
+		userCheck = models.Users{}
+	} else {
+		c.JSON(501, gin.H{
+			"Error": "verify your eamil first",
+		})
 	}
-	userCheck = models.Users{}
+	otpValid = false
 }

@@ -13,10 +13,12 @@ func AdminOrdersView(c *gin.Context) {
 	initializer.DB.Joins("Product").Find(&orders)
 	for _, order := range orders {
 		c.JSON(200, gin.H{
-			"ID":      order.ID,
-			"Product": order.Product.Name,
-			"Amount":  order.OrderAmount,
-			"Status":  order.OrderStatus,
+			"ID":             order.ID,
+			"Product":        order.Product.Name,
+			"Amount":         order.OrderAmount,
+			"Status":         order.OrderStatus,
+			"user id":        order.UserId,
+			"order Quantity": order.OrderQuantity,
 		})
 	}
 }
@@ -32,9 +34,9 @@ func AdminCancelOrder(c *gin.Context) {
 	}
 	order.OrderStatus = "cancelled"
 	initializer.DB.Save(&order)
-	if err:= initializer.DB.First(&productQuantity, order.ProductId).Error;err!=nil{
-		c.JSON(500,"failed to fetch product details")
-      return
+	if err := initializer.DB.First(&productQuantity, order.ProductId).Error; err != nil {
+		c.JSON(500, "failed to fetch product details")
+		return
 	}
 	productQuantity.Quantity += order.OrderQuantity
 	initializer.DB.Save(&productQuantity)
@@ -51,7 +53,7 @@ func AdminOrderStatus(c *gin.Context) {
 		})
 		return
 	}
-	if err := initializer.DB.First(&orderStatus,id).Error; err != nil {
+	if err := initializer.DB.First(&orderStatus, id).Error; err != nil {
 		c.JSON(500, gin.H{
 			"Error": "can't find order",
 		})

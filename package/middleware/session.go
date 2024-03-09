@@ -18,7 +18,6 @@ func SessionCreate(email string, role string, c *gin.Context) {
 	} else {
 		return
 	}
-
 }
 func AuthMiddleware(role string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -26,7 +25,7 @@ func AuthMiddleware(role string) gin.HandlerFunc {
 		check := session.Get(role)
 		fmt.Println("========", check)
 		if check == nil {
-			c.JSON(200, gin.H{
+			c.JSON(401, gin.H{
 				"message": "Unauthorized",
 			})
 			c.Abort()

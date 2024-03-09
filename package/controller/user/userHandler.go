@@ -36,7 +36,7 @@ func UserSignUp(c *gin.Context) {
 		if err != nil {
 			c.JSON(500, "failed to send otp")
 		} else {
-			c.JSON(200, "otp send to mail  "+otp)
+			c.JSON(202, "otp send to mail  "+otp)
 			result := initializer.DB.First(&otpStore, "email=?", LogJs.Email)
 			if result.Error != nil {
 
@@ -92,7 +92,7 @@ func OtpCheck(c *gin.Context) {
 			if err := initializer.DB.Delete(&otpExistTable).Error; err != nil {
 				c.JSON(500, "failed to delete otp data")
 			}
-			c.JSON(202, gin.H{"message": "user created successfully"})
+			c.JSON(201, gin.H{"message": "user created successfully"})
 		}
 	}
 }
@@ -103,7 +103,7 @@ func ResendOtp(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, "failed to send otp")
 	} else {
-		c.JSON(200, "otp send to mail  "+otp)
+		c.JSON(202, "otp resend to mail  "+otp)
 		result := initializer.DB.First(&otpStore, "email=?", LogJs.Email)
 		if result.Error != nil {
 			otpStore = models.OtpMail{

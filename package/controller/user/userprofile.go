@@ -43,13 +43,15 @@ func AddressStore(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err})
 	}
 	if err := initializer.DB.First(&userCheck, UserData.ID).Error; err != nil {
-		c.JSON(500, "no user found")
+		c.JSON(404, gin.H{
+			"Error": "no user found",
+		})
 	} else {
 		addAddress.UserId = int(UserData.ID)
 		if result := initializer.DB.Create(&addAddress); result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add address"})
 		} else {
-			c.JSON(http.StatusOK, gin.H{"message": "new address added successfully"})
+			c.JSON(201, gin.H{"message": "new address added successfully"})
 		}
 	}
 }
@@ -58,7 +60,7 @@ func AddressEdit(c *gin.Context) {
 	id := c.Param("ID")
 	err := initializer.DB.First(&addressEdit, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find address"})
+		c.JSON(404, gin.H{"error": "can't find address"})
 	} else {
 		err := c.ShouldBindJSON(&addressEdit)
 		if err != nil {
@@ -67,7 +69,7 @@ func AddressEdit(c *gin.Context) {
 			if err := initializer.DB.Save(&addressEdit).Error; err != nil {
 				c.JSON(500, gin.H{"error": "failed to update details"})
 			} else {
-				c.JSON(200, gin.H{"message": "address updated successfully"})
+				c.JSON(201, gin.H{"message": "address updated successfully"})
 			}
 		}
 	}
@@ -78,20 +80,24 @@ func AddressDelete(c *gin.Context) {
 	id := session.Get("userid")
 	err := initializer.DB.First(&deleteAddress, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find address"})
+		c.JSON(404, gin.H{"error": "can't find address"})
 	} else {
 		err := initializer.DB.Delete(&deleteAddress).Error
 		if err != nil {
-			c.JSON(500, "failed to delete address")
+			c.JSON(500, gin.H{
+				"Error": "failed to delete address",
+			})
 		} else {
-			c.JSON(200, "address deleted successfully")
+			c.JSON(200, gin.H{
+				"message": "address deleted successfully",
+			})
 		}
 	}
 }
 func EditUserProfile(c *gin.Context) {
 	var editProfile models.Users
 	if err := initializer.DB.First(&editProfile, UserData.ID).Error; err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(404, gin.H{
 			"Error": "user not found",
 		})
 	} else {
@@ -107,7 +113,7 @@ func EditUserProfile(c *gin.Context) {
 				})
 			} else {
 				c.JSON(500, gin.H{
-					"Error": "updated data",
+					"Message": "updated data",
 				})
 			}
 		}
