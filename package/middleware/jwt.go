@@ -78,7 +78,7 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 			return
 		}
 		if claims.Role == "user" {
-			fmt.Println("email-----  ", claims.Email)
+			fmt.Println("email  -----  ", claims.Email)
 			if err := initializer.DB.First(&UserData, "email=?", claims.Email).Error; err != nil {
 				c.JSON(400, gin.H{
 					"error": "failed fetch user details",
@@ -87,7 +87,6 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 				return
 			}
 		}
-
 		if claims.Role != requiredRole {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
 			c.Abort()

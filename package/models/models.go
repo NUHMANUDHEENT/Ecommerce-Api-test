@@ -6,6 +6,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type Admins struct {
+	gorm.Model
+	Name     string `gorm:"not null" json:"admin_name"`
+	Email    string `gorm:"not null unique" json:"admin_email"`
+	Password string `gorm:"not null" json:"admin_password"`
+}
+
 type Users struct {
 	gorm.Model
 	Name     string `gorm:"not null" json:"name"`

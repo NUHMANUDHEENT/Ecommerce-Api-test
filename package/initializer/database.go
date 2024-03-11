@@ -19,7 +19,7 @@ func LoadDatabase() {
 		log.Fatal("...........Failed to connect to database..........")
 	}
 	DB = db
-	DB.AutoMigrate(&models.Users{}, &models.Products{}, &models.OtpMail{}, &models.Rating{},
+	DB.AutoMigrate(&models.Admins{}, &models.Users{}, &models.Products{}, &models.OtpMail{}, &models.Rating{},
 		&models.Review{}, &models.Category{}, &models.Address{}, &models.Cart{}, &models.Coupon{}, &models.Order{})
 
 }

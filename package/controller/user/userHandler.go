@@ -15,7 +15,7 @@ import (
 
 var LogJs models.Users
 var otp string
-var Role = "user"
+var RoleUser = "user"
 
 func UserSignUp(c *gin.Context) {
 	LogJs = models.Users{}
@@ -23,39 +23,40 @@ func UserSignUp(c *gin.Context) {
 	err := c.ShouldBindJSON(&LogJs)
 	if err != nil {
 		c.JSON(501, gin.H{"error": "json binding error"})
+		return
 	}
 
 	if err := initializer.DB.First(&LogJs, "email=?", LogJs.Email).Error; err == nil {
 		c.JSON(501, gin.H{"error": "Email address already exist"})
+		return
+	}
+	otp = handler.GenerateOtp()
+	fmt.Println("----------------", otp, "-----------------")
+	err = handler.SendOtp(LogJs.Email, otp)
+	if err != nil {
+		c.JSON(500, "failed to send otp")
 	} else {
-		otp = handler.GenerateOtp()
-		fmt.Println("----------------", otp, "-----------------")
-		err = handler.SendOtp(LogJs.Email, otp)
-		if err != nil {
-			c.JSON(500, "failed to send otp")
+		c.JSON(202, "otp send to mail  "+otp)
+		result := initializer.DB.First(&otpStore, "email=?", LogJs.Email)
+		if result.Error != nil {
+			otpStore = models.OtpMail{
+				Otp:       otp,
+				Email:     LogJs.Email,
+				CreatedAt: time.Now(),
+				ExpireAt:  time.Now().Add(30 * time.Second),
+			}
+			err := initializer.DB.Create(&otpStore)
+			if err.Error != nil {
+				c.JSON(500, gin.H{"error": "failed to save otp details"})
+				return
+			}
 		} else {
-			c.JSON(202, "otp send to mail  "+otp)
-			result := initializer.DB.First(&otpStore, "email=?", LogJs.Email)
-			if result.Error != nil {
-
-				otpStore = models.OtpMail{
-					Otp:       otp,
-					Email:     LogJs.Email,
-					CreatedAt: time.Now(),
-					ExpireAt:  time.Now().Add(30 * time.Second),
-				}
-				err := initializer.DB.Create(&otpStore)
-				if err.Error != nil {
-					c.JSON(500, gin.H{"error": "failed to save otp details"})
-				}
-			} else {
-				err := initializer.DB.Model(&otpStore).Where("email=?", LogJs.Email).Updates(models.OtpMail{
-					Otp:      otp,
-					ExpireAt: time.Now().Add(15 * time.Second),
-				})
-				if err.Error != nil {
-					c.JSON(500, "failed too update data")
-				}
+			err := initializer.DB.Model(&otpStore).Where("email=?", LogJs.Email).Updates(models.OtpMail{
+				Otp:      otp,
+				ExpireAt: time.Now().Add(15 * time.Second),
+			})
+			if err.Error != nil {
+				c.JSON(500, "failed too update data")
 			}
 		}
 	}
@@ -143,7 +144,7 @@ func UserLogin(c *gin.Context) {
 			c.JSON(300, "User blocked")
 		} else {
 			middleware.UserData = userPass
-			middleware.JwtTokenStart(c, userPass.Email, Role)
+			middleware.JwtTokenStart(c, userPass.Email, RoleUser)
 			c.JSON(200, gin.H{"Message": "login successfully"})
 		}
 	}
