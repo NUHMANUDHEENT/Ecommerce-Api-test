@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -19,17 +17,18 @@ func SessionCreate(email string, role string, c *gin.Context) {
 		return
 	}
 }
-func AuthMiddleware(role string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		check := session.Get(role)
-		fmt.Println("========", check)
-		if check == nil {
-			c.JSON(401, gin.H{
-				"message": "Unauthorized",
-			})
-			c.Abort()
-		}
-		c.Next()
-	}
-}
+
+// func AuthMiddleware(role string) gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		session := sessions.Default(c)
+// 		check := session.Get(role)
+// 		fmt.Println("========", check)
+// 		if check == nil {
+// 			c.JSON(401, gin.H{
+// 				"message": "Unauthorized",
+// 			})
+// 			c.Abort()
+// 		}
+// 		c.Next()
+// 	}
+// }

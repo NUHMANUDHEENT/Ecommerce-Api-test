@@ -9,14 +9,12 @@ import (
 	"project1/package/models"
 	"time"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var LogJs models.Users
 var otp string
-var UserData models.Users
 var Role = "user"
 
 func UserSignUp(c *gin.Context) {
@@ -129,46 +127,37 @@ func ResendOtp(c *gin.Context) {
 }
 
 func UserLogin(c *gin.Context) {
-	session := sessions.Default(c)
-	check := session.Get("user")
-	if check != nil {
-		c.JSON(200, gin.H{
-			"Message": "Already logged",
-		})
+	LogJs = models.Users{}
+	var userPass models.Users
+	err := c.ShouldBindJSON(&LogJs)
+	if err != nil {
+		c.JSON(501, gin.H{"error": "error binding data"})
+	}
+	fmt.Println(LogJs)
+	initializer.DB.First(&userPass, "email=?", LogJs.Email)
+	err = bcrypt.CompareHashAndPassword([]byte(userPass.Password), []byte(LogJs.Password))
+	if err != nil {
+		c.JSON(501, gin.H{"Error": "invalid username or password"})
 	} else {
-		LogJs = models.Users{}
-		var userPass models.Users
-		err := c.ShouldBindJSON(&LogJs)
-		if err != nil {
-			c.JSON(501, gin.H{"error": "error binding data"})
-		}
-		fmt.Println(LogJs)
-		initializer.DB.First(&userPass, "email=?", LogJs.Email)
-		err = bcrypt.CompareHashAndPassword([]byte(userPass.Password), []byte(LogJs.Password))
-		if err != nil {
-			c.JSON(501, gin.H{"Error": "invalid username or password"})
+		if !userPass.Blocking {
+			c.JSON(300, "User blocked")
 		} else {
-			if !userPass.Blocking {
-				c.JSON(300, "User blocked")
-			} else {
-				UserData = userPass
-				middleware.SessionCreate(UserData.Email, Role, c)
-				c.JSON(200, gin.H{"Message": "login successfully"})
-			}
+			middleware.UserData = userPass
+			middleware.JwtTokenStart(c, userPass.Email, Role)
+			c.JSON(200, gin.H{"Message": "login successfully"})
 		}
 	}
 }
 func UserLogout(c *gin.Context) {
-	session := sessions.Default(c)
-	check := session.Get("user")
-	if check == nil {
-		c.JSON(200, "Not logged in")
-	} else {
-		UserData = models.Users{}
-		session.Delete("user")
-		session.Save()
-		c.JSON(200, gin.H{
-			"Message": "logout Successfull",
-		})
+	tokenString := c.GetHeader("Authorization")
+	if tokenString == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token not provided"})
+		return
 	}
+	middleware.UserData = models.Users{}
+	middleware.BlacklistedTokens[tokenString] = true
+	c.JSON(200, gin.H{
+		"Message": "logout Successfull",
+	})
+
 }

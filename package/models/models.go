@@ -89,16 +89,16 @@ type Coupon struct {
 }
 type Order struct {
 	gorm.Model
-	UserId        int `json:"order_cart"`
-	User          Users
-	ProductId     int `json:"order_product"`
-	Product       Products
-	AddressId     int `json:"order_address"`
-	Address       Address
-	CouponCode    string `json:"order_coupon"`
-	OrderPayment  string `json:"order_payment"`
-	OrderQuantity uint
-	OrderAmount   float64
-	OrderStatus   string
+	UserId            int `json:"order_cart"`
+	User              Users
+	ProductId         int `json:"order_product"`
+	Product           Products
+	AddressId         int `json:"order_address"`
+	Address           Address
+	CouponCode        string `json:"order_coupon"`
+	OrderPayment      string `json:"order_payment"`
+	OrderQuantity     uint
+	OrderAmount       float64
+	OrderStatus       string
 	OrderCancelReason string
 }

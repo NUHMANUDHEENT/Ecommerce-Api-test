@@ -33,7 +33,8 @@ func AdminGroup(r *gin.RouterGroup) {
 	r.POST("/categories", middleware.AuthMiddleware(roleAdmin), controller.AddCategory)
 	r.PATCH("/categories/:ID", middleware.AuthMiddleware(roleAdmin), controller.EditCategories)
 	r.DELETE("/categories/:ID", middleware.AuthMiddleware(roleAdmin), controller.DeleteCategories)
-	r.PATCH("/categories/block/:ID", middleware.AuthMiddleware(roleAdmin), controller.BlockCategory)
+	r.PATCH("/categories/block/:ID", middleware.
+		AuthMiddleware(roleAdmin), controller.BlockCategory)
 
 	//===================== Coupon managment ====================
 	r.GET("/coupon", middleware.AuthMiddleware(roleAdmin), controller.CouponView)
