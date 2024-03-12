@@ -3,7 +3,6 @@ package controller
 import (
 	"net/http"
 	"project1/package/initializer"
-	"project1/package/middleware"
 	"project1/package/models"
 	"strconv"
 	"time"
@@ -13,7 +12,8 @@ import (
 
 func CheckOut(c *gin.Context) {
 	var cartItems []models.Cart
-	initializer.DB.Preload("Product").Where("user_id=?", middleware.UserData.ID).Find(&cartItems)
+	userId := c.GetUint("userid")
+	initializer.DB.Preload("Product").Where("user_id=?", userId).Find(&cartItems)
 	if len(cartItems) == 0 {
 		c.JSON(404, "no cart data found for this user")
 		return
@@ -62,7 +62,7 @@ func CheckOut(c *gin.Context) {
 			val.Product.Quantity -= val.Quantity
 
 			order := models.Order{
-				UserId:        int(middleware.UserData.ID),
+				UserId:        int(userId),
 				OrderPayment:  paymentMethod,
 				AddressId:     int(Address),
 				ProductId:     val.ProductId,
@@ -89,7 +89,7 @@ func CheckOut(c *gin.Context) {
 				return
 			}
 
-			if err := initializer.DB.Where("user_id =? AND product_id=?", middleware.UserData.ID, val.ProductId).Delete(&models.Cart{}); err.Error != nil {
+			if err := initializer.DB.Where("user_id =? AND product_id=?", userId, val.ProductId).Delete(&models.Cart{}); err.Error != nil {
 				c.JSON(http.StatusBadRequest, "faild to delete datas in cart.")
 				return
 			}
@@ -105,7 +105,8 @@ func CheckOut(c *gin.Context) {
 
 func OrderView(c *gin.Context) {
 	var orders []models.Order
-	initializer.DB.Where("user_id=?", middleware.UserData.ID).Joins("Product").Find(&orders)
+	userId := c.GetUint("userid")
+	initializer.DB.Where("user_id=?", userId).Joins("Product").Find(&orders)
 	for _, order := range orders {
 		c.JSON(200, gin.H{
 			"ID":      order.ID,
@@ -118,7 +119,8 @@ func OrderView(c *gin.Context) {
 
 func OrderDetails(c *gin.Context) {
 	var order models.Order
-	initializer.DB.Preload("Product").Where("id=?", middleware.UserData.ID).First(&order)
+	userId := c.GetUint("userid")
+	initializer.DB.Preload("Product").Where("id=?", userId).First(&order)
 	c.JSON(200, gin.H{
 		"Product":         order.Product.Name,
 		"Amount":          order.OrderAmount,

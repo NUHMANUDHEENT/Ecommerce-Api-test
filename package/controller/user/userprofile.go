@@ -3,7 +3,6 @@ package controller
 import (
 	"net/http"
 	"project1/package/initializer"
-	"project1/package/middleware"
 	"project1/package/models"
 
 	"github.com/gin-contrib/sessions"
@@ -13,7 +12,9 @@ import (
 func UserProfile(c *gin.Context) {
 	var userProfile models.Users
 	var userAddress []models.Address
-	if err := initializer.DB.First(&userProfile, middleware.UserData.ID).Error; err != nil {
+	userId := c.GetUint("userid")
+
+	if err := initializer.DB.First(&userProfile, userId).Error; err != nil {
 		c.JSON(500, "failed to find user")
 	} else {
 		c.JSON(200, gin.H{
@@ -23,7 +24,7 @@ func UserProfile(c *gin.Context) {
 			"user id":    userProfile.ID,
 		})
 	}
-	if err := initializer.DB.Find(&userAddress, "user_id=?", middleware.UserData.ID).Error; err != nil {
+	if err := initializer.DB.Find(&userAddress, "user_id=?", userId).Error; err != nil {
 		c.JSON(500, "failed to find address")
 	} else {
 		for _, val := range userAddress {
@@ -40,15 +41,16 @@ func UserProfile(c *gin.Context) {
 func AddressStore(c *gin.Context) {
 	var userCheck models.Users
 	var addAddress models.Address
+	userId := c.GetUint("userid")
 	if err := c.ShouldBindJSON(&addAddress); err != nil {
 		c.JSON(500, gin.H{"error": err})
 	}
-	if err := initializer.DB.First(&userCheck, middleware.UserData.ID).Error; err != nil {
+	if err := initializer.DB.First(&userCheck, userId).Error; err != nil {
 		c.JSON(404, gin.H{
 			"Error": "no user found",
 		})
 	} else {
-		addAddress.UserId = int(middleware.UserData.ID)
+		addAddress.UserId = int(userId)
 		if result := initializer.DB.Create(&addAddress); result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add address"})
 		} else {
@@ -97,7 +99,8 @@ func AddressDelete(c *gin.Context) {
 }
 func EditUserProfile(c *gin.Context) {
 	var editProfile models.Users
-	if err := initializer.DB.First(&editProfile, middleware.UserData.ID).Error; err != nil {
+	userId := c.GetUint("userid")
+	if err := initializer.DB.First(&editProfile, userId).Error; err != nil {
 		c.JSON(404, gin.H{
 			"Error": "user not found",
 		})

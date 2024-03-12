@@ -2,30 +2,30 @@ package middleware
 
 import (
 	"fmt"
-	"net/http"
-	"project1/package/initializer"
-	"project1/package/models"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
-var SecretKey = []byte("qwertyuiop")
+var SecretKey = []byte(os.Getenv("SECRETKEY"))
 var BlacklistedTokens = make(map[string]bool)
 var UserEmail string
-var UserData models.Users
+
+// var UserData models.Users
 
 type Claims struct {
-	Email string `json:"username"`
-	Role  string `json:"roles"`
+	Email  string `json:"username"`
+	Role   string `json:"roles"`
+	UserID uint
 	jwt.StandardClaims
 }
 
-func JwtTokenStart(c *gin.Context, email string, role string) {
-	tokenString, err := createToken(email, role)
+func JwtTokenStart(c *gin.Context, userId uint, email string, role string) {
+	tokenString, err := createToken(userId, email, role)
 	if err != nil {
-		c.JSON(401, gin.H{
+		c.JSON(200, gin.H{
 			"Error": "Failed to create Token",
 		})
 	}
@@ -36,17 +36,19 @@ func JwtTokenStart(c *gin.Context, email string, role string) {
 	fmt.Println("---------------===  ", tokenString, "  ===-----------------")
 }
 
-func createToken(email string, role string) (string, error) {
+func createToken(userId uint, email string, role string) (string, error) {
 	claims := Claims{
-		Email: email,
-		Role:  role,
+		Email:  email,
+		Role:   role,
+		UserID: uint(userId),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Minute * 4).Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(SecretKey)
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRETKEY")))
 	if err != nil {
+		fmt.Println("----", err, tokenString)
 		return "", err
 	}
 	return tokenString, nil
@@ -54,46 +56,43 @@ func createToken(email string, role string) (string, error) {
 
 func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		UserData = models.Users{}
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token not provided"})
+			c.JSON(401, gin.H{"error": "Token not provided"})
 			c.Abort()
 			return
 		}
 		if BlacklistedTokens[tokenString] {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token revoked"})
+			c.JSON(401, gin.H{"error": "Token revoked"})
 			c.Abort()
 			return
 		}
 
 		claims := &Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return SecretKey, nil
+			return []byte(os.Getenv("SECRETKEY")), nil
 		})
-		fmt.Println("token_-----  ", token)
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.JSON(401, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}
-		if claims.Role == "user" {
-			fmt.Println("email  -----  ", claims.Email)
-			if err := initializer.DB.First(&UserData, "email=?", claims.Email).Error; err != nil {
-				c.JSON(400, gin.H{
-					"error": "failed fetch user details",
-				})
-				c.Abort()
-				return
-			}
-		}
+		// if claims.Role == "user" {
+		// 	fmt.Println("email  -----  ", claims.Email)
+		// 	if err := initializer.DB.First(&UserData, "email=?", claims.Email).Error; err != nil {
+		// 		c.JSON(400, gin.H{
+		// 			"error": "failed fetch user details",
+		// 		})
+		// 		c.Abort()
+		// 		return
+		// 	}
+		// }
 		if claims.Role != requiredRole {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
+			c.JSON(403, gin.H{"error": "Insufficient permissions"})
 			c.Abort()
 			return
 		}
-		c.Set("claims", claims)
-		claims = &Claims{}
+		c.Set("userid", claims.UserID)
 		c.Next()
 	}
 }

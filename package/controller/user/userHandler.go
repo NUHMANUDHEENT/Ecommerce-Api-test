@@ -143,8 +143,7 @@ func UserLogin(c *gin.Context) {
 		if !userPass.Blocking {
 			c.JSON(300, "User blocked")
 		} else {
-			middleware.UserData = userPass
-			middleware.JwtTokenStart(c, userPass.Email, RoleUser)
+			middleware.JwtTokenStart(c, userPass.ID, userPass.Email, RoleUser)
 			c.JSON(200, gin.H{"Message": "login successfully"})
 		}
 	}
@@ -152,10 +151,9 @@ func UserLogin(c *gin.Context) {
 func UserLogout(c *gin.Context) {
 	tokenString := c.GetHeader("Authorization")
 	if tokenString == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Token not provided"})
+		c.JSON(400, gin.H{"error": "Token not provided"})
 		return
 	}
-	middleware.UserData = models.Users{}
 	middleware.BlacklistedTokens[tokenString] = true
 	c.JSON(200, gin.H{
 		"Message": "logout Successfull",

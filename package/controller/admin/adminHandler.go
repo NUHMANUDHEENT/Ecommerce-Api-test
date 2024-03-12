@@ -31,7 +31,7 @@ func AdminLogin(c *gin.Context) {
 		c.JSON(501, gin.H{"error": "invalid username or password"})
 		return
 	}
-	middleware.JwtTokenStart(c, adminStore.Email, RoleAdmin)
+	middleware.JwtTokenStart(c, adminStore.ID, adminStore.Email, RoleAdmin)
 	c.JSON(202, gin.H{"message": "successfully logged"})
 }
 

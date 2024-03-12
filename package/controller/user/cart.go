@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"project1/package/initializer"
-	"project1/package/middleware"
 	"project1/package/models"
 	"strconv"
 
@@ -12,9 +11,10 @@ import (
 
 func CartView(c *gin.Context) {
 	var cartView []models.Cart
+	userId := c.GetUint("userid")
 	var totalAmount = 0
 	var count = 0
-	if err := initializer.DB.Joins("Product").Where("user_id=?", middleware.UserData.ID).Find(&cartView).Error; err != nil {
+	if err := initializer.DB.Joins("Product").Where("user_id=?", userId).Find(&cartView).Error; err != nil {
 		c.JSON(500, gin.H{
 			"error": "failed to fetch data",
 		})
@@ -47,10 +47,11 @@ func CartView(c *gin.Context) {
 }
 func CartStore(c *gin.Context) {
 	var cartStore models.Cart
+	userId := c.GetUint("userid")
 	id := c.Param("ID")
-	err := initializer.DB.Where("user_id=? AND product_id=?", middleware.UserData.ID, id).First(&cartStore)
+	err := initializer.DB.Where("user_id=? AND product_id=?", userId, id).First(&cartStore)
 	if err.Error != nil {
-		cartStore.UserId = int(middleware.UserData.ID)
+		cartStore.UserId = int(userId)
 		cartStore.ProductId, _ = strconv.Atoi(id)
 		cartStore.Quantity = 1
 		if err := initializer.DB.Create(&cartStore).Error; err != nil {
@@ -71,12 +72,13 @@ func CartStore(c *gin.Context) {
 func CartProductAdd(c *gin.Context) {
 	var cartStore models.Cart
 	var productStock models.Products
+	userId := c.GetUint("userid")
 	id := c.Param("ID")
 	if err := initializer.DB.First(&productStock, id).Error; err != nil {
 		c.JSON(500, "failed to fetch product stock deatails")
 	}
 
-	err := initializer.DB.Where("user_id=? AND product_id=?", middleware.UserData.ID, id).First(&cartStore).Error
+	err := initializer.DB.Where("user_id=? AND product_id=?", userId, id).First(&cartStore).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": "can't find product",
@@ -85,7 +87,7 @@ func CartProductAdd(c *gin.Context) {
 		cartStore.Quantity += 1
 		if productStock.Quantity >= cartStore.Quantity {
 			if cartStore.Quantity <= 5 {
-				err := initializer.DB.Where("user_id=? AND product_id=?", middleware.UserData.ID, cartStore.ProductId).Save(&cartStore)
+				err := initializer.DB.Where("user_id=? AND product_id=?", userId, cartStore.ProductId).Save(&cartStore)
 				if err.Error != nil {
 					c.JSON(500, gin.H{
 						"error": "failed to add to one more",
@@ -110,8 +112,9 @@ func CartProductAdd(c *gin.Context) {
 }
 func CartProductRemove(c *gin.Context) {
 	var cartStore models.Cart
+	userId := c.GetUint("userid")
 	id := c.Param("ID")
-	err := initializer.DB.Where("user_id=? AND product_id=?", middleware.UserData.ID, id).First(&cartStore).Error
+	err := initializer.DB.Where("user_id=? AND product_id=?", userId, id).First(&cartStore).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": "can't find product",
@@ -120,7 +123,7 @@ func CartProductRemove(c *gin.Context) {
 		cartStore.Quantity -= 1
 		if cartStore.Quantity >= 1 {
 
-			err := initializer.DB.Where("user_id=? AND product_id=?", middleware.UserData.ID, cartStore.ProductId).Save(&cartStore)
+			err := initializer.DB.Where("user_id=? AND product_id=?", userId, cartStore.ProductId).Save(&cartStore)
 			if err.Error != nil {
 				c.JSON(500, gin.H{
 					"error": "failed to update",
@@ -141,14 +144,15 @@ func CartProductRemove(c *gin.Context) {
 
 func CartProductDelete(c *gin.Context) {
 	var ProductRemove models.Cart
+	userId := c.GetUint("userid")
 	id := c.Param("ID")
-	if err := initializer.DB.First(&ProductRemove, "product_id=? AND user_id=?", id, middleware.UserData.ID).Error; err != nil {
+	if err := initializer.DB.First(&ProductRemove, "product_id=? AND user_id=?", id, userId).Error; err != nil {
 		c.JSON(500, gin.H{
 			"Error": "can't find product",
 		})
 	} else {
 		fmt.Println("----------", ProductRemove)
-		if err := initializer.DB.Where("product_id=? AND user_id=?", id, middleware.UserData.ID).Delete(&ProductRemove).Error; err != nil {
+		if err := initializer.DB.Where("product_id=? AND user_id=?", id, userId).Delete(&ProductRemove).Error; err != nil {
 			c.JSON(500, gin.H{
 				"Error": "failed to remove product",
 			})
