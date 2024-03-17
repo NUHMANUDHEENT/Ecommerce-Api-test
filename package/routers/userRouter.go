@@ -52,5 +52,5 @@ func UserGroup(r *gin.RouterGroup) {
 	r.POST("/checkout", middleware.AuthMiddleware(roleuser), controller.CheckOut)
 	r.GET("/orders", middleware.AuthMiddleware(roleuser), controller.OrderView)
 	r.GET("/orderdetails/:ID", middleware.AuthMiddleware(roleuser), controller.OrderDetails)
-	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleuser), controller.CancelOrder)
+	 r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleuser), controller.CancelOrder)
 }

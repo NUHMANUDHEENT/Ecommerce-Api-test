@@ -9,9 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var SecretKey = []byte(os.Getenv("SECRETKEY"))
+
 var BlacklistedTokens = make(map[string]bool)
-var UserEmail string
+
 
 // var UserData models.Users
 
@@ -42,7 +42,7 @@ func createToken(userId uint, email string, role string) (string, error) {
 		Role:   role,
 		UserID: uint(userId),
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 4).Unix(),
+			ExpiresAt: time.Now().Add(time.Minute * 20).Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -77,16 +77,6 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		// if claims.Role == "user" {
-		// 	fmt.Println("email  -----  ", claims.Email)
-		// 	if err := initializer.DB.First(&UserData, "email=?", claims.Email).Error; err != nil {
-		// 		c.JSON(400, gin.H{
-		// 			"error": "failed fetch user details",
-		// 		})
-		// 		c.Abort()
-		// 		return
-		// 	}
-		// }
 		if claims.Role != requiredRole {
 			c.JSON(403, gin.H{"error": "Insufficient permissions"})
 			c.Abort()

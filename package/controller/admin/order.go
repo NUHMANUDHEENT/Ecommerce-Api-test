@@ -8,44 +8,82 @@ import (
 )
 
 func AdminOrdersView(c *gin.Context) {
-	var orders []models.Order
-
-	initializer.DB.Joins("Product").Find(&orders)
-	for _, order := range orders {
+	var ordersitems []models.OrderItems
+	initializer.DB.Preload("Order").Find(&ordersitems)
+	for _, orderitem := range ordersitems {
 		c.JSON(200, gin.H{
-			"ID":             order.ID,
-			"Product":        order.Product.Name,
-			"Amount":         order.OrderAmount,
-			"Status":         order.OrderStatus,
-			"user id":        order.UserId,
-			"order Quantity": order.OrderQuantity,
+			"Order item id":  orderitem.Id,
+			"order id":       orderitem.OrderId,
+			"total Amount":   orderitem.SubTotal,
+			"user id":        orderitem.Order.UserId,
+			"payment method": orderitem.Order.OrderPayment,
+			"order date":     orderitem.Order.OrderDate,
 		})
 	}
 }
 func AdminCancelOrder(c *gin.Context) {
 	id := c.Param("ID")
-	var order models.Order
-	var productQuantity models.Products
-	if err := initializer.DB.Where("id=?", id).First(&order).Error; err != nil {
+	var orderItem models.OrderItems
+	tx := initializer.DB.Begin()
+	if err := tx.First(&orderItem, id).Error; err != nil {
 		c.JSON(500, gin.H{
 			"Error": "can't find order",
 		})
+		tx.Rollback()
 		return
 	}
-	order.OrderStatus = "cancelled"
-	initializer.DB.Save(&order)
-	if err := initializer.DB.First(&productQuantity, order.ProductId).Error; err != nil {
-		c.JSON(500, "failed to fetch product details")
+	if orderItem.OrderStatus == "cancelled" {
+		c.JSON(202, gin.H{
+			"Message": "product already cancelled",
+		})
 		return
 	}
-	productQuantity.Quantity += order.OrderQuantity
-	initializer.DB.Save(&productQuantity)
-	c.JSON(200, "Order Cancelled.")
+	orderItem.OrderStatus = "cancelled"
+	orderItem.OrderCancelReason = "admin cancelled"
+	if err := tx.Save(&orderItem).Error; err != nil {
+		c.JSON(500, "Failed to update status")
+		tx.Rollback()
+		return
+	}
+
+	var orderAmount models.Order
+	if err := tx.First(&orderAmount, orderItem.OrderId).Error; err != nil {
+		c.JSON(400, gin.H{
+			"Error": "failed to find order details",
+		})
+		tx.Rollback()
+		return
+	}
+	var couponRemove models.Coupon
+	if orderAmount.CouponCode != "" {
+		if err := initializer.DB.First(&couponRemove, "code=?", orderAmount.CouponCode).Error; err != nil {
+			c.JSON(400, gin.H{
+				"Error": "can't find coupon code",
+			})
+			tx.Rollback()
+		}
+		orderAmount.CouponCode = ""
+	}
+	newAmount := 0.0
+	newAmount = float64(orderItem.SubTotal) + couponRemove.Discount
+	orderAmount.OrderAmount -= newAmount
+
+	if err := tx.Save(&orderAmount).Error; err != nil {
+		c.JSON(400, gin.H{
+			"Error": "failed to update order details",
+		})
+		tx.Rollback()
+		return
+	}
+	tx.Commit()
+	c.JSON(201, gin.H{
+		"Message": "Order Cancelled",
+	})
 }
 
 func AdminOrderStatus(c *gin.Context) {
 	id := c.Param("ID")
-	var orderStatus models.Order
+	var orderStatus models.OrderItems
 	orderStatusChenge := c.Request.FormValue("status")
 	if orderStatusChenge == "" {
 		c.JSON(500, gin.H{

@@ -95,17 +95,25 @@ type Coupon struct {
 	ValidTo   time.Time `json:"valid_to"`
 }
 type Order struct {
-	gorm.Model
-	UserId            int `json:"order_cart"`
-	User              Users
-	ProductId         int `json:"order_product"`
+	Id           uint
+	UserId       int `json:"order_cart"`
+	User         Users
+	AddressId    int `json:"order_address"`
+	Address      Address
+	CouponCode   string `json:"order_coupon"`
+	OrderPayment string `json:"order_payment"`
+	OrderAmount  float64
+	OrderDate    time.Time
+	OrderUpdate  time.Time
+}
+type OrderItems struct {
+	Id                uint `gorm:"primary key"`
+	OrderId           uint
+	Order             Order
+	ProductId         int
 	Product           Products
-	AddressId         int `json:"order_address"`
-	Address           Address
-	CouponCode        string `json:"order_coupon"`
-	OrderPayment      string `json:"order_payment"`
-	OrderQuantity     uint
-	OrderAmount       float64
+	Quantity          uint
+	SubTotal          uint
 	OrderStatus       string
 	OrderCancelReason string
 }

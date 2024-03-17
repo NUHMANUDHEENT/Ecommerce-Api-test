@@ -20,6 +20,6 @@ func LoadDatabase() {
 	}
 	DB = db
 	DB.AutoMigrate(&models.Admins{}, &models.Users{}, &models.Products{}, &models.OtpMail{}, &models.Rating{},
-		&models.Review{}, &models.Category{}, &models.Address{}, &models.Cart{}, &models.Coupon{}, &models.Order{})
+		&models.Review{}, &models.Category{}, &models.Address{}, &models.Cart{}, &models.Coupon{}, &models.Order{}, &models.OrderItems{})
 
 }
