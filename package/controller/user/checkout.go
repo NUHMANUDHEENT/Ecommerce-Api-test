@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net/http"
+	"project1/package/handler"
 	"project1/package/initializer"
 	"project1/package/models"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 )
 
 func CheckOut(c *gin.Context) {
+	couponCode := ""
 	var cartItems []models.Cart
 	userId := c.GetUint("userid")
 	initializer.DB.Preload("Product").Where("user_id=?", userId).Find(&cartItems)
@@ -32,24 +34,40 @@ func CheckOut(c *gin.Context) {
 		return
 	}
 	// ================== coupon validation===============
-	couponCode := c.Request.FormValue("coupon")
+	couponCode = c.Request.FormValue("coupon")
 	var couponCheck models.Coupon
 	var userLimitCheck models.Order
-	if err := initializer.DB.First(&userLimitCheck, "coupon_code", couponCode).Error; err == nil {
-		c.JSON(200, gin.H{
-			"Error": "Coupon already used",
-		})
-		return
+	// ============= stock check and amount calc ===================
+	var Amount float64
+	var totalAmount float64
+	for _, val := range cartItems {
+		Amount = (float64(val.Product.Price) * float64(val.Quantity))
+		if val.Quantity > val.Product.Quantity {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Insufficent stock for product " + val.Product.Name,
+			})
+			return
+		}
+		totalAmount += Amount
 	}
-	if err := initializer.DB.Where(" code=? AND valid_from < ? AND valid_to > ?", couponCode, time.Now(), time.Now()).First(&couponCheck).Error; err != nil {
-		c.JSON(200, gin.H{
-			"Error": "Coupon Not valid",
-		})
-		return
-	} else {
-		c.JSON(200, gin.H{
-			"Messege": "Coupon applied",
-		})
+
+	if couponCode != "" {
+		if err := initializer.DB.First(&userLimitCheck, "coupon_code", couponCode).Error; err == nil {
+			c.JSON(200, gin.H{
+				"Error": "Coupon already used",
+			})
+			return
+		}
+		if err := initializer.DB.Where(" code=? AND valid_from < ? AND valid_to > ? AND coupon_condition <= ?", couponCode, time.Now(), time.Now(), totalAmount).First(&couponCheck).Error; err != nil {
+			c.JSON(200, gin.H{
+				"Error": "Coupon Not valid",
+			})
+			return
+		} else {
+			c.JSON(200, gin.H{
+				"Messege": "Coupon applied",
+			})
+		}
 	}
 	// ================== order id creation =======================
 	const charset = "123456789"
@@ -65,20 +83,6 @@ func CheckOut(c *gin.Context) {
 	orderId, _ := strconv.Atoi(orderIdstring)
 	fmt.Println("-----", orderId)
 
-	// ============= stock check and amount calc ===================
-	var Amount float64
-	var totalAmount float64
-	for _, val := range cartItems {
-		Amount = (float64(val.Product.Price) * float64(val.Quantity))
-		if val.Quantity > val.Product.Quantity {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Insufficent stock for product " + val.Product.Name,
-			})
-			return
-		}
-		totalAmount += Amount
-	}
-
 	//================ Start the transaction ===================
 	tx := initializer.DB.Begin()
 	defer func() {
@@ -86,8 +90,22 @@ func CheckOut(c *gin.Context) {
 			tx.Rollback()
 		}
 	}()
+	if paymentMethod == "ONLINE" {
+		orderResponse, err := handler.PaymentHandler(orderId, int(totalAmount-couponCheck.Discount))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			tx.Rollback()
+			return
+		} else {
+			c.JSON(200, gin.H{
+				"Message":  "please complete the payment",
+				"order id": orderResponse,
+			})
+		}
+	}
 
-	//================= order details store ==================
+	// handler.RazorPaymentVerification(,orderResponse)
+	// //================= order details store ==================
 
 	order := models.Order{
 		Id:           uint(orderId),
@@ -128,20 +146,22 @@ func CheckOut(c *gin.Context) {
 			return
 		}
 	}
-	if err := tx.Where("user_id =?", userId).Delete(&models.Cart{}); err.Error != nil {
-		tx.Rollback()
-		c.JSON(400, "faild to delete datas in cart.")
-		return
-	}
+	// if err := tx.Where("user_id =?", userId).Delete(&models.Cart{}); err.Error != nil {
+	// 	tx.Rollback()
+	// 	c.JSON(400, "faild to delete datas in cart.")
+	// 	return
+	// }
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSON(500, "failed to commit transaction")
 		return
 	}
-	c.JSON(501, gin.H{
-		"Order":   "Order Placed successfully",
-		"Message": "Order will arrive with in 4 days",
-	})
+	if paymentMethod != "ONLINE" {
+		c.JSON(501, gin.H{
+			"Order":   "Order Placed successfully",
+			"Message": "Order will arrive with in 4 days",
+		})
+	}
 }
 
 func OrderView(c *gin.Context) {
@@ -235,12 +255,14 @@ func CancelOrder(c *gin.Context) {
 				})
 				tx.Rollback()
 			}
+
+		}
+		if couponRemove.CouponCondition > int(orderAmount.OrderAmount) {
+			newAmount := 0.0
+			newAmount = float64(orderItem.SubTotal) + couponRemove.Discount
+			orderAmount.OrderAmount -= newAmount
 			orderAmount.CouponCode = ""
 		}
-		newAmount := 0.0
-		newAmount = float64(orderItem.SubTotal) + couponRemove.Discount
-		orderAmount.OrderAmount -= newAmount
-
 		if err := tx.Save(&orderAmount).Error; err != nil {
 			c.JSON(400, gin.H{
 				"Error": "failed to update order details",

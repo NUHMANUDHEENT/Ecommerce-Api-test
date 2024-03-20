@@ -37,6 +37,7 @@ func CouponView(c *gin.Context) {
 				"Coupon Id":          val.ID,
 				"Coupon code":        val.Code,
 				"Coupon Discound":    val.Discount,
+				"Coupon condition":   val.CouponCondition,
 				"Coupon valied from": val.ValidFrom,
 				"Coupon valied To":   val.ValidTo,
 			})

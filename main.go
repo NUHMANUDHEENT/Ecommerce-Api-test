@@ -7,7 +7,6 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"github.com/razorpay/razorpay-go"
 )
 
 func init() {
@@ -18,10 +17,10 @@ func init() {
 func main() {
 	router := gin.Default()
 
+	router.LoadHTMLGlob("templates/*")
+	
 	store := cookie.NewStore([]byte("secret"))
 	router.Use(sessions.Sessions("mysession", store))
-
-	client := razorpay.NewClient("<Your Key ID>", "<Your Key Secret>")
 
 	user := router.Group("/")
 	routers.UserGroup(user)

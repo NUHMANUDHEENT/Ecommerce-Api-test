@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"net/http"
 	controller "project1/package/controller/user"
 	"project1/package/handler"
 	"project1/package/middleware"
@@ -52,5 +53,9 @@ func UserGroup(r *gin.RouterGroup) {
 	r.POST("/checkout", middleware.AuthMiddleware(roleuser), controller.CheckOut)
 	r.GET("/orders", middleware.AuthMiddleware(roleuser), controller.OrderView)
 	r.GET("/orderdetails/:ID", middleware.AuthMiddleware(roleuser), controller.OrderDetails)
-	 r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleuser), controller.CancelOrder)
+	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleuser), controller.CancelOrder)
+	r.GET("/payment", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "payment.html", nil)
+	})
+
 }

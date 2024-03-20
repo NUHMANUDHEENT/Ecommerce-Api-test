@@ -91,6 +91,7 @@ type Coupon struct {
 	gorm.Model
 	Code      string    `gorm:"unique" json:"code"`
 	Discount  float64   `json:"discount"`
+	CouponCondition int `json:"condition"`
 	ValidFrom time.Time `json:"valid_from"`
 	ValidTo   time.Time `json:"valid_to"`
 }

@@ -42,7 +42,7 @@ func createToken(userId uint, email string, role string) (string, error) {
 		Role:   role,
 		UserID: uint(userId),
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 20).Unix(),
+			ExpiresAt: time.Now().Add(time.Minute * 60).Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
