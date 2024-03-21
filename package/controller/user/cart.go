@@ -9,11 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ==================== list the cart items =================
 func CartView(c *gin.Context) {
 	var cartView []models.Cart
 	userId := c.GetUint("userid")
 	var totalAmount = 0
 	var count = 0
+	// =============== find user cart details with join products ================
+
 	if err := initializer.DB.Joins("Product").Where("user_id=?", userId).Find(&cartView).Error; err != nil {
 		c.JSON(500, gin.H{
 			"error": "failed to fetch data",
@@ -45,6 +48,8 @@ func CartView(c *gin.Context) {
 
 	cartView = []models.Cart{}
 }
+
+// ============= add products into cart =============
 func CartStore(c *gin.Context) {
 	var cartStore models.Cart
 	userId := c.GetUint("userid")
@@ -69,6 +74,7 @@ func CartStore(c *gin.Context) {
 		})
 	}
 }
+// =============== add a specific product quantity ================
 func CartProductAdd(c *gin.Context) {
 	var cartStore models.Cart
 	var productStock models.Products
@@ -110,6 +116,7 @@ func CartProductAdd(c *gin.Context) {
 		}
 	}
 }
+// ===================  remove a specific product quantity ===================
 func CartProductRemove(c *gin.Context) {
 	var cartStore models.Cart
 	userId := c.GetUint("userid")
@@ -141,7 +148,7 @@ func CartProductRemove(c *gin.Context) {
 		}
 	}
 }
-
+// ============== delete cart item ==============
 func CartProductDelete(c *gin.Context) {
 	var ProductRemove models.Cart
 	userId := c.GetUint("userid")

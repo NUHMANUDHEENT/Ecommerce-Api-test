@@ -43,8 +43,8 @@ func AdminGroup(r *gin.RouterGroup) {
 	r.DELETE("/coupon/:ID", middleware.AuthMiddleware(roleAdmin), controller.CouponDelete)
 
 	// =================== order managment ==============
-	// r.GET("/orders", middleware.AuthMiddleware(roleAdmin), controller.AdminOrdersView)
+	r.GET("/orders", middleware.AuthMiddleware(roleAdmin), controller.AdminOrdersView)
 	r.PATCH("/orderstatus/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminOrderStatus)
-	// r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminCancelOrder)
+	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminCancelOrder)
 
 }

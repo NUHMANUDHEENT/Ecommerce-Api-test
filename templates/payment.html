@@ -8,22 +8,18 @@
 <body>
   <h1>Please Complete the Payment</h1>
   <form id="orderForm">
-    <!-- Input field to fetch the order ID -->
     <input type="text" id="orderIdInput" placeholder="Enter Order ID">
     <button type="submit">Fetch Order ID</button>
   </form>
 
-  <!-- Payment button -->
   <button id="payButton" style="display: none;">Pay Now</button>
 
-  <!-- Include Razorpay's SDK -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
-    // Function to handle payment process
     function initiatePayment(orderId) {
       var options = {
-        key: 'rzp_test_CuoceDh2rleHvj', // Replace with your Razorpay API key
-        amount: 10000, // Example: amount in paisa (multiply by 100 for rupees)
+        key: 'rzp_test_CuoceDh2rleHvj', 
+        amount: 10000, 
         currency: 'INR',
         name: 'E COMMERCE WEBSITE',
         description: 'Payment for Order',
@@ -33,7 +29,6 @@
           var signature = response.razorpay_signature;
           var orderId = response.razorpay_order_id;
 
-          // Send the payment details to your backend for verification and processing
           sendPaymentDetails(orderId, paymentId, signature);
         },
         prefill: {
@@ -42,15 +37,14 @@
           contact: '9876543210'
         },
         theme: {
-          color: '#F37254' // Customize theme color
+          color: '#F37254' 
         }
       };
 
       var rzp = new Razorpay(options);
       rzp.open();
     }
-
-    // Function to send payment details to backend API
+    //================== send payment details to backend=============
     function sendPaymentDetails(orderId, paymentId, signature) {
       fetch('http://localhost:8080/payment/confirm', {
         method: 'POST',
@@ -68,23 +62,21 @@
       .catch(error => console.error('Error:', error));
     }
 
-    // Event listener for form submission
+    //============= Event listener for form submission==============
     document.getElementById('orderForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent default form submission
+      event.preventDefault();
 
       var orderId = document.getElementById('orderIdInput').value;
 
-      // Check if orderId is fetched successfully
+      //============== Check if orderId is fetched successfully============
       if (orderId) {
         alert('Order ID fetched successfully: ' + orderId);
-        // Show the payment button now that order ID is fetched
         document.getElementById('payButton').style.display = 'block';
       } else {
         alert('Error fetching order ID.');
       }
     });
-
-    // Event listener for payment button click
+    //============== event listener for submit ====================
     document.getElementById('payButton').addEventListener('click', function() {
       var orderId = document.getElementById('orderIdInput').value;
       initiatePayment(orderId);

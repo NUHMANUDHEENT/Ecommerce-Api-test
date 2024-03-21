@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"project1/package/initializer"
 	"project1/package/models"
 	"strconv"
@@ -20,7 +21,8 @@ func PaymentPage(c *gin.Context) {
 	c.HTML(200, "payment.html", nil)
 }
 func PaymentHandler(orderId int, amount int) (string, error) {
-	client := razorpay.NewClient("rzp_test_CuoceDh2rleHvj", "4hciN7tsy9W3dcRV6DK3gZcN")
+
+	client := razorpay.NewClient(os.Getenv("RAZOR_PAY_KEY"), os.Getenv("RAZOR_PAY_SECRET"))
 	orderParams := map[string]interface{}{
 		"amount":   amount * 100,
 		"currency": "INR",
@@ -42,6 +44,7 @@ func PaymentConfirmation(c *gin.Context) {
 		return
 	}
 	pd := paymentDetails
+
 	//============== verify the signature ================
 	err := RazorPaymentVerification(pd["signature"], pd["order_id"], pd["payment_id"])
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// =============== user checkout the items and payment ================
 func CheckOut(c *gin.Context) {
 	couponCode := ""
 	var cartItems []models.Cart
@@ -23,7 +24,7 @@ func CheckOut(c *gin.Context) {
 		})
 		return
 	}
-
+	// ============= check if given the payment method and addres =============
 	paymentMethod := c.Request.FormValue("payment")
 	Address, _ := strconv.ParseUint(c.Request.FormValue("address"), 10, 64)
 	if paymentMethod == "" || Address == 0 {
@@ -32,10 +33,7 @@ func CheckOut(c *gin.Context) {
 		})
 		return
 	}
-	// ================== coupon validation===============
-	couponCode = c.Request.FormValue("coupon")
-	var couponCheck models.Coupon
-	var userLimitCheck models.Order
+
 	// ============= stock check and amount calc ===================
 	var Amount float64
 	var totalAmount float64
@@ -50,6 +48,10 @@ func CheckOut(c *gin.Context) {
 		totalAmount += Amount
 	}
 
+	// ================== coupon validation===============
+	couponCode = c.Request.FormValue("coupon")
+	var couponCheck models.Coupon
+	var userLimitCheck models.Order
 	if couponCode != "" {
 		if err := initializer.DB.First(&userLimitCheck, "coupon_code", couponCode).Error; err == nil {
 			c.JSON(200, gin.H{
@@ -69,6 +71,7 @@ func CheckOut(c *gin.Context) {
 			totalAmount -= couponCheck.Discount
 		}
 	}
+
 	// ================== order id creation =======================
 	const charset = "123456789"
 	randomBytes := make([]byte, 8)
@@ -90,8 +93,9 @@ func CheckOut(c *gin.Context) {
 			tx.Rollback()
 		}
 	}()
+	// if payment method is online redirect to payment actions ===============
 	if paymentMethod == "ONLINE" {
-		orderResponse, err := PaymentHandler(orderId, int(totalAmount))
+		order_id, err := PaymentHandler(orderId, int(totalAmount))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 			tx.Rollback()
@@ -99,22 +103,22 @@ func CheckOut(c *gin.Context) {
 		} else {
 			c.JSON(200, gin.H{
 				"Message":  "please complete the payment",
-				"order id": orderResponse,
+				"order id": order_id,
 			})
 			err := initializer.DB.Create(&models.PaymentDetails{
-				Order_Id:      orderResponse,
+				Order_Id:      order_id,
 				Receipt:       uint(orderId),
 				PaymentStatus: "not done",
 				PaymentAmount: int(totalAmount),
 			}).Error
 			if err != nil {
 				c.JSON(200, gin.H{
-					"error":  "failed to store payment data",
+					"error": "failed to store payment data",
 				})
 			}
 		}
 	}
-
+// ================= insert order details into databse ===================
 	order := models.Order{
 		Id:                 uint(orderId),
 		UserId:             int(userId),
@@ -129,6 +133,7 @@ func CheckOut(c *gin.Context) {
 		c.JSON(500, "failed to place order")
 		return
 	}
+	// ============ insert order items into database ==================
 	for _, val := range cartItems {
 		OrderItems := models.OrderItems{
 			OrderId:     uint(orderId),
@@ -144,7 +149,8 @@ func CheckOut(c *gin.Context) {
 			})
 			return
 		}
-		if paymentMethod != "ONLINE"{
+		// ============= if order is COD manage the stock ============
+		if paymentMethod != "ONLINE" {
 			var productQuantity models.Products
 			tx.First(&productQuantity, val.ProductId)
 			if err := tx.Save(val.Product).Error; err != nil {
@@ -155,12 +161,14 @@ func CheckOut(c *gin.Context) {
 				return
 			}
 		}
-		}
+	}
+	// =============== delete all items from user cart ==============
 	if err := tx.Where("user_id =?", userId).Delete(&models.Cart{}); err.Error != nil {
 		tx.Rollback()
 		c.JSON(400, "faild to delete datas in cart.")
 		return
 	}
+	//================= commit transaction whether no error ==================
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSON(500, "failed to commit transaction")
@@ -173,7 +181,7 @@ func CheckOut(c *gin.Context) {
 		})
 	}
 }
-
+//============== list the orders to user ===============
 func OrderView(c *gin.Context) {
 	var orders []models.Order
 	userId := c.GetUint("userid")
@@ -187,7 +195,7 @@ func OrderView(c *gin.Context) {
 		})
 	}
 }
-
+// ============= show the order details to user ==============
 func OrderDetails(c *gin.Context) {
 	var orderitems []models.OrderItems
 	orderId := c.Param("ID")
@@ -198,7 +206,6 @@ func OrderDetails(c *gin.Context) {
 		})
 		return
 	}
-
 	for _, orderItem := range orderitems {
 		c.JSON(200, gin.H{
 			"order_item Id":    orderItem.Id,
@@ -212,7 +219,7 @@ func OrderDetails(c *gin.Context) {
 		})
 	}
 }
-
+// ============== cancel the order if user don't want ==============
 func CancelOrder(c *gin.Context) {
 	var orderItem models.OrderItems
 	var productQuantity models.Products
@@ -235,6 +242,7 @@ func CancelOrder(c *gin.Context) {
 			})
 			return
 		}
+		// ======= update status as cancelled ======
 		orderItem.OrderStatus = "cancelled"
 		orderItem.OrderCancelReason = reason
 		if err := tx.Save(&orderItem).Error; err != nil {
@@ -242,6 +250,7 @@ func CancelOrder(c *gin.Context) {
 			tx.Rollback()
 			return
 		}
+		// ======== manage product stock =========
 		tx.First(&productQuantity, orderItem.ProductId)
 		productQuantity.Quantity += orderItem.Quantity
 		if err := initializer.DB.Save(&productQuantity).Error; err != nil {
@@ -257,6 +266,7 @@ func CancelOrder(c *gin.Context) {
 			tx.Rollback()
 			return
 		}
+		//========== check coupon condition ============
 		var couponRemove models.Coupon
 		if orderAmount.CouponCode != "" {
 			if err := initializer.DB.First(&couponRemove, "code=?", orderAmount.CouponCode).Error; err != nil {
