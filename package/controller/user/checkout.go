@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net/http"
-	"project1/package/handler"
 	"project1/package/initializer"
 	"project1/package/models"
 	"strconv"
@@ -67,6 +66,7 @@ func CheckOut(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"Messege": "Coupon applied",
 			})
+			totalAmount -= couponCheck.Discount
 		}
 	}
 	// ================== order id creation =======================
@@ -91,7 +91,7 @@ func CheckOut(c *gin.Context) {
 		}
 	}()
 	if paymentMethod == "ONLINE" {
-		orderResponse, err := handler.PaymentHandler(orderId, int(totalAmount-couponCheck.Discount))
+		orderResponse, err := PaymentHandler(orderId, int(totalAmount))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 			tx.Rollback()
@@ -101,20 +101,28 @@ func CheckOut(c *gin.Context) {
 				"Message":  "please complete the payment",
 				"order id": orderResponse,
 			})
+			err := initializer.DB.Create(&models.PaymentDetails{
+				Order_Id:      orderResponse,
+				Receipt:       uint(orderId),
+				PaymentStatus: "not done",
+				PaymentAmount: int(totalAmount),
+			}).Error
+			if err != nil {
+				c.JSON(200, gin.H{
+					"error":  "failed to store payment data",
+				})
+			}
 		}
 	}
 
-	// handler.RazorPaymentVerification(,orderResponse)
-	// //================= order details store ==================
-
 	order := models.Order{
-		Id:           uint(orderId),
-		UserId:       int(userId),
-		OrderPayment: paymentMethod,
-		AddressId:    int(Address),
-		OrderAmount:  totalAmount - couponCheck.Discount,
-		OrderDate:    time.Now(),
-		CouponCode:   couponCode,
+		Id:                 uint(orderId),
+		UserId:             int(userId),
+		OrderPaymentMethod: paymentMethod,
+		AddressId:          int(Address),
+		OrderAmount:        totalAmount - couponCheck.Discount,
+		OrderDate:          time.Now(),
+		CouponCode:         couponCode,
 	}
 	if err := tx.Create(&order).Error; err != nil {
 		tx.Rollback()
@@ -136,21 +144,23 @@ func CheckOut(c *gin.Context) {
 			})
 			return
 		}
-		var productQuantity models.Products
-		tx.First(&productQuantity, val.ProductId)
-		if err := tx.Save(val.Product).Error; err != nil {
-			tx.Rollback()
-			c.JSON(500, gin.H{
-				"error": "Failed to Update Product Stock",
-			})
-			return
+		if paymentMethod != "ONLINE"{
+			var productQuantity models.Products
+			tx.First(&productQuantity, val.ProductId)
+			if err := tx.Save(val.Product).Error; err != nil {
+				tx.Rollback()
+				c.JSON(500, gin.H{
+					"error": "Failed to Update Product Stock",
+				})
+				return
+			}
 		}
+		}
+	if err := tx.Where("user_id =?", userId).Delete(&models.Cart{}); err.Error != nil {
+		tx.Rollback()
+		c.JSON(400, "faild to delete datas in cart.")
+		return
 	}
-	// if err := tx.Where("user_id =?", userId).Delete(&models.Cart{}); err.Error != nil {
-	// 	tx.Rollback()
-	// 	c.JSON(400, "faild to delete datas in cart.")
-	// 	return
-	// }
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		c.JSON(500, "failed to commit transaction")
@@ -172,7 +182,7 @@ func OrderView(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"order id":       order.Id,
 			"Amount":         order.OrderAmount,
-			"payment method": order.OrderPayment,
+			"payment method": order.OrderPaymentMethod,
 			"order date":     order.OrderDate,
 		})
 	}

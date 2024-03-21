@@ -16,7 +16,7 @@ func AdminOrdersView(c *gin.Context) {
 			"order id":       orderitem.OrderId,
 			"total Amount":   orderitem.SubTotal,
 			"user id":        orderitem.Order.UserId,
-			"payment method": orderitem.Order.OrderPayment,
+			"payment method": orderitem.Order.OrderPaymentMethod,
 			"order date":     orderitem.Order.OrderDate,
 		})
 	}

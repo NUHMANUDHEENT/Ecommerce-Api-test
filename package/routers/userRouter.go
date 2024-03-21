@@ -57,5 +57,5 @@ func UserGroup(r *gin.RouterGroup) {
 	r.GET("/payment", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "payment.html", nil)
 	})
-
+	r.POST("/payment/confirm", controller.PaymentConfirmation)
 }
