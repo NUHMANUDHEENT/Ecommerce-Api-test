@@ -80,3 +80,10 @@ type Wallet struct{
 	User Users
 	Balance float64
 }
+type Wishlist struct{
+	Id uint
+	UserId int
+	User Users
+	ProductId int
+	Product Products
+}

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"project1/package/initializer"
 	"project1/package/models"
 	"strconv"
@@ -74,6 +73,7 @@ func CartStore(c *gin.Context) {
 		})
 	}
 }
+
 // =============== add a specific product quantity ================
 func CartProductAdd(c *gin.Context) {
 	var cartStore models.Cart
@@ -116,6 +116,7 @@ func CartProductAdd(c *gin.Context) {
 		}
 	}
 }
+
 // ===================  remove a specific product quantity ===================
 func CartProductRemove(c *gin.Context) {
 	var cartStore models.Cart
@@ -148,25 +149,19 @@ func CartProductRemove(c *gin.Context) {
 		}
 	}
 }
+
 // ============== delete cart item ==============
 func CartProductDelete(c *gin.Context) {
 	var ProductRemove models.Cart
 	userId := c.GetUint("userid")
 	id := c.Param("ID")
-	if err := initializer.DB.First(&ProductRemove, "product_id=? AND user_id=?", id, userId).Error; err != nil {
+	if err := initializer.DB.Where("product_id=? AND user_id=?", id, userId).Delete(&ProductRemove).Error; err != nil {
 		c.JSON(500, gin.H{
-			"Error": "can't find product",
+			"Error": "failed to remove product",
 		})
 	} else {
-		fmt.Println("----------", ProductRemove)
-		if err := initializer.DB.Where("product_id=? AND user_id=?", id, userId).Delete(&ProductRemove).Error; err != nil {
-			c.JSON(500, gin.H{
-				"Error": "failed to remove product",
-			})
-		} else {
-			c.JSON(200, gin.H{
-				"message": "product remove successfully",
-			})
-		}
+		c.JSON(200, gin.H{
+			"message": "product remove successfully",
+		})
 	}
 }

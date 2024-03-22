@@ -54,8 +54,15 @@ func UserGroup(r *gin.RouterGroup) {
 	r.GET("/orders", middleware.AuthMiddleware(roleuser), controller.OrderView)
 	r.GET("/orderdetails/:ID", middleware.AuthMiddleware(roleuser), controller.OrderDetails)
 	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleuser), controller.CancelOrder)
+	
+	//=========================== payment ==========================
 	r.GET("/payment", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "payment.html", nil)
 	})
 	r.POST("/payment/confirm", controller.PaymentConfirmation)
+
+	//=========================== wishlist =========================
+   r.GET("/wishlist",middleware.AuthMiddleware(roleuser),controller.WishlistProducts)
+   r.POST("/wishlist/:ID",middleware.AuthMiddleware(roleuser),controller.WishlistAdd)
+   r.DELETE("/wishlist/:ID",middleware.AuthMiddleware(roleuser),controller.WishlistDelete)
 }

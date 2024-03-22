@@ -124,7 +124,7 @@ func CheckOut(c *gin.Context) {
 		UserId:             int(userId),
 		OrderPaymentMethod: paymentMethod,
 		AddressId:          int(Address),
-		OrderAmount:        totalAmount - couponCheck.Discount,
+		OrderAmount:        totalAmount,
 		OrderDate:          time.Now(),
 		CouponCode:         couponCode,
 	}
@@ -226,7 +226,6 @@ func OrderDetails(c *gin.Context) {
 // ============== cancel the order if user don't want ==============
 func CancelOrder(c *gin.Context) {
 	var orderItem models.OrderItems
-	var productQuantity models.Products
 	orderItemId := c.Param("ID")
 	reason := c.Request.FormValue("reason")
 	tx := initializer.DB.Begin()
@@ -254,14 +253,7 @@ func CancelOrder(c *gin.Context) {
 			tx.Rollback()
 			return
 		}
-		// ======== manage product stock =========
-		tx.First(&productQuantity, orderItem.ProductId)
-		productQuantity.Quantity += orderItem.Quantity
-		if err := initializer.DB.Save(&productQuantity).Error; err != nil {
-			c.JSON(500, "failed to add quantity")
-			tx.Rollback()
-			return
-		}
+
 		var orderAmount models.Order
 		if err := tx.First(&orderAmount, orderItem.OrderId).Error; err != nil {
 			c.JSON(400, gin.H{
@@ -279,12 +271,10 @@ func CancelOrder(c *gin.Context) {
 				})
 				tx.Rollback()
 			}
-
 		}
 		if couponRemove.CouponCondition > int(orderAmount.OrderAmount) {
-			newAmount := 0.0
-			newAmount = float64(orderItem.SubTotal) + couponRemove.Discount
-			orderAmount.OrderAmount -= newAmount
+			orderAmount.OrderAmount += couponRemove.Discount
+			orderAmount.OrderAmount -= float64(orderItem.SubTotal)
 			orderAmount.CouponCode = ""
 		}
 		if err := tx.Save(&orderAmount).Error; err != nil {
