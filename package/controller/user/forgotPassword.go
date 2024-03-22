@@ -12,10 +12,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// var forgotPassOtp string
 var userCheck models.Users
 var otpValid = false
 
+// =========== check user if already exist ==========
 func ForgotUserCheck(c *gin.Context) {
 	userCheck = models.Users{}
 	var otpStore models.OtpMail

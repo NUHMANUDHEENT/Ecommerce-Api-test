@@ -91,6 +91,15 @@ func OtpCheck(c *gin.Context) {
 			if err := initializer.DB.Delete(&otpExistTable).Error; err != nil {
 				c.JSON(500, "failed to delete otp data")
 			}
+			if err := initializer.DB.First(&LogJs).Error; err != nil {
+				c.JSON(501, gin.H{
+					"Error": "failed to fetch user details for wallet",
+				})
+				return
+			}
+			initializer.DB.Create(&models.Wallet{
+				User_id: int(LogJs.ID),
+			})
 			c.JSON(201, gin.H{"message": "user created successfully"})
 		}
 	}

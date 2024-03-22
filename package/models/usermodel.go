@@ -74,3 +74,9 @@ type PaymentDetails struct {
 	PaymentStatus string
 	PaymentAmount int
 }
+type Wallet struct{
+	gorm.Model
+	User_id int
+	User Users
+	Balance float64
+}

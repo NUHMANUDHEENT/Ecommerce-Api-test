@@ -118,7 +118,7 @@ func CheckOut(c *gin.Context) {
 			}
 		}
 	}
-// ================= insert order details into databse ===================
+	// ================= insert order details into databse ===================
 	order := models.Order{
 		Id:                 uint(orderId),
 		UserId:             int(userId),
@@ -181,11 +181,12 @@ func CheckOut(c *gin.Context) {
 		})
 	}
 }
-//============== list the orders to user ===============
+
+// ============== list the orders to user ===============
 func OrderView(c *gin.Context) {
 	var orders []models.Order
 	userId := c.GetUint("userid")
-	initializer.DB.Preload("OrderItems").Find(&orders).Where("user_id=?", userId)
+	initializer.DB.Where("user_id=?", userId).Find(&orders)
 	for _, order := range orders {
 		c.JSON(200, gin.H{
 			"order id":       order.Id,
@@ -194,7 +195,9 @@ func OrderView(c *gin.Context) {
 			"order date":     order.OrderDate,
 		})
 	}
+	orders = []models.Order{}
 }
+
 // ============= show the order details to user ==============
 func OrderDetails(c *gin.Context) {
 	var orderitems []models.OrderItems
@@ -219,6 +222,7 @@ func OrderDetails(c *gin.Context) {
 		})
 	}
 }
+
 // ============== cancel the order if user don't want ==============
 func CancelOrder(c *gin.Context) {
 	var orderItem models.OrderItems
@@ -290,9 +294,26 @@ func CancelOrder(c *gin.Context) {
 			tx.Rollback()
 			return
 		}
-		tx.Commit()
-		c.JSON(201, gin.H{
-			"Message": "Order Cancelled",
-		})
+		var walletUpdate models.Wallet
+		if err := tx.First(&walletUpdate, "user_id=?", orderAmount.UserId).Error; err != nil {
+			c.JSON(501, gin.H{
+				"error": "failed to fetch wallet details",
+			})
+			tx.Rollback()
+			return
+		} else {
+			walletUpdate.Balance += orderAmount.OrderAmount
+			tx.Save(&walletUpdate)
+		}
+		if err := tx.Commit().Error; err != nil {
+			c.JSON(201, gin.H{
+				"Message": "failed to commit transaction",
+			})
+			tx.Rollback()
+		} else {
+			c.JSON(201, gin.H{
+				"Message": "Order Cancelled",
+			})
+		}
 	}
 }

@@ -7,16 +7,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
+//============== search anda filter ==================
 func SeaechProduct(c *gin.Context) {
 	searchQuery := c.Query("query")
 	sortBy := strings.ToLower(c.DefaultQuery("sort", "a_to_z"))
 
+	// ======== search based query ============
 	query := initializer.DB
 	if searchQuery != "" {
 		query = query.Where("name ILIKE ?", "%"+searchQuery+"%")
 	}
-
+ // ======== filter products given query =========
 	switch sortBy {
 	case "price_low_to_high":
 		query = query.Order("price asc")
