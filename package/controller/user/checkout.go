@@ -38,7 +38,8 @@ func CheckOut(c *gin.Context) {
 	var Amount float64
 	var totalAmount float64
 	for _, val := range cartItems {
-		Amount = (float64(val.Product.Price) * float64(val.Quantity))
+		discount := OfferDiscountCalc(val.ProductId)
+		Amount = ((float64(val.Product.Price) - discount) * float64(val.Quantity))
 		if val.Quantity > val.Product.Quantity {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Insufficent stock for product " + val.Product.Name,
@@ -216,7 +217,7 @@ func OrderDetails(c *gin.Context) {
 			"Product name":     orderItem.Product.Name,
 			"Order date":       orderItem.Order.OrderDate,
 			"Amount":           orderItem.SubTotal,
-			"Payment quantity": orderItem.Quantity,
+			"Product quantity": orderItem.Quantity,
 			"Status":           orderItem.OrderStatus,
 			"Address ID":       orderItem.Order.AddressId,
 		})

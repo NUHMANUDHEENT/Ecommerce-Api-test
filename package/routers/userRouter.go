@@ -28,7 +28,7 @@ func UserGroup(r *gin.RouterGroup) {
 
 	// ================= product page ===============
 	r.GET("/", controller.ProductsPage)
-	r.GET("/product/:ID", middleware.AuthMiddleware(roleuser), controller.ProductDetails)
+	r.GET("/product/:ID", controller.ProductDetails)
 	r.POST("/product/rating", middleware.AuthMiddleware(roleuser), controller.RatingStore)
 	r.POST("/product/review", middleware.AuthMiddleware(roleuser), controller.ReviewStore)
 

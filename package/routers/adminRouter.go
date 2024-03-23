@@ -47,4 +47,8 @@ func AdminGroup(r *gin.RouterGroup) {
 	r.PATCH("/orderstatus/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminOrderStatus)
 	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminCancelOrder)
 
+	// =================== offers management =====================
+	r.GET("/offers",controller.OfferList)
+	r.POST("/offers",controller.OfferAdd)
+	r.DELETE("/offers",controller.OfferDelete)
 }

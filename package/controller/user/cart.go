@@ -21,16 +21,23 @@ func CartView(c *gin.Context) {
 			"error": "failed to fetch data",
 		})
 	} else {
+		var totalDiscount float64
 		for _, val := range cartView {
+			offerDiscount := OfferDiscountCalc(val.ProductId)
+			totalDiscount += offerDiscount
 			c.JSON(200, gin.H{
-				"product name":     val.Product.Name,
-				"product image":    val.Product.ImagePath1,
-				"product quantity": val.Quantity,
-				"product price":    val.Product.Price,
-				"product id":       val.Product.ID,
+				"offer amount":            offerDiscount,
+				"product name":            val.Product.Name,
+				"product image":           val.Product.ImagePath1,
+				"product quantity":        val.Quantity,
+				"product price":           val.Product.Price,
+				"product dicounted price": val.Product.Price - uint(offerDiscount),
+				"product id":              val.Product.ID,
 			})
+			val.Product.Price -= uint(offerDiscount)
 			price := int(val.Quantity) * int(val.Product.Price)
 			totalAmount += price
+			totalDiscount += offerDiscount * float64(val.Quantity)
 			count += 1
 		}
 		if totalAmount == 0 {
@@ -40,6 +47,7 @@ func CartView(c *gin.Context) {
 		} else {
 			c.JSON(200, gin.H{
 				"total products": count,
+				"total discount": totalDiscount,
 				"Total Amount":   totalAmount,
 			})
 		}

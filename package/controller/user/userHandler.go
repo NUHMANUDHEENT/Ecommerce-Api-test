@@ -163,7 +163,7 @@ func UserLogout(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "Token not provided"})
 		return
 	}
-	middleware.BlacklistedTokens[tokenString] = true
+	c.SetCookie("jwt_token", "", -1, "", "", false, false)
 	c.JSON(200, gin.H{
 		"Message": "logout Successfull",
 	})

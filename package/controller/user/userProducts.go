@@ -37,47 +37,43 @@ func ProductDetails(c *gin.Context) {
 	id := c.Param("ID")
 	if err := initializer.DB.First(&productdetails, id).Error; err != nil {
 		c.JSON(404, "Can't see product")
+		return
+	}
+	discount := OfferDiscountCalc(int(productdetails.ID))
+	c.JSON(200, gin.H{
+		"product image":           productdetails.ImagePath1,
+		"product image1":          productdetails.ImagePath2,
+		"product image2":          productdetails.ImagePath3,
+		"Product Name":            productdetails.Name,
+		"Product Size":            productdetails.Size,
+		"Product Color":           productdetails.Color,
+		"Product Price":           productdetails.Price,
+		"product dicounted price": productdetails.Price - uint(discount),
+		"Product descreiption ":   productdetails.Description,
+	})
+	if productdetails.Quantity == 0 {
+		c.JSON(200, gin.H{
+			"Stock Status": "Out of Stock"})
 	} else {
-		//prodcut full details
-		c.JSON(200, "product details")
 		c.JSON(200, gin.H{
-			"product image":         productdetails.ImagePath1,
-			"product image1":        productdetails.ImagePath2,
-			"product image2":        productdetails.ImagePath3,
-			"Product Name":          productdetails.Name,
-			"Product Size":          productdetails.Size,
-			"Product Color":         productdetails.Color,
-			"Product Price":         productdetails.Price,
-			"Product descreiption ": productdetails.Description,
-		})
-		// Stock Cheking
-		if productdetails.Quantity == 0 {
+			"Stock Status": "Item is currently available"})
+	}
+	rating := RatingCalc(id, c)
+	c.JSON(200, gin.H{
+		"Rating": rating,
+	})
+	ReviewView(id, c)
+	for _, val := range products {
+		if productdetails.CategoryId == int(val.Category.ID) && val.ID != productdetails.ID {
+			c.JSON(200, "related products")
 			c.JSON(200, gin.H{
-				"Stock Status": "Out of Stock"})
-		} else {
-			c.JSON(200, gin.H{
-				"Stock Status": "Item is currently available"})
-		}
-		// rating of the prodects
-		rating := RatingCalc(id, c)
-		c.JSON(200, gin.H{
-			"Rating": rating,
-		})
-		// review of the product
-		ReviewView(id, c)
-
-		// related products
-		for _, val := range products {
-			if productdetails.CategoryId == int(val.Category.ID) && val.ID != productdetails.ID {
-				c.JSON(200, "related products")
-				c.JSON(200, gin.H{
-					"product image": val.ImagePath1,
-					"product name":  val.Name,
-					"product price": val.Price,
-				})
-			}
+				"product image": val.ImagePath1,
+				"product name":  val.Name,
+				"product price": val.Price,
+			})
 		}
 	}
+
 	productdetails = models.Products{}
 }
 func RatingStore(c *gin.Context) {
