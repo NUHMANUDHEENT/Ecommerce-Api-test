@@ -13,7 +13,7 @@ func AdminGroup(r *gin.RouterGroup) {
 	//================ admin authentication=======================
 	r.GET("/login", controller.AdminLogin)
 	r.GET("/logout", controller.AdminLogout)
-	r.POST("/signup", controller.AdminSignUp)
+	r.POST("/signup",middleware.AuthMiddleware(roleAdmin), controller.AdminSignUp)
 	r.GET("/", middleware.AuthMiddleware(roleAdmin), controller.AdminPage)
 
 	//================User managment=======================
@@ -48,10 +48,11 @@ func AdminGroup(r *gin.RouterGroup) {
 	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminCancelOrder)
 
 	// =================== offers management =====================
-	r.GET("/offers", controller.OfferList)
-	r.POST("/offers", controller.OfferAdd)
-	r.DELETE("/offers", controller.OfferDelete)
+	r.GET("/offers",middleware.AuthMiddleware(roleAdmin), controller.OfferList)
+	r.POST("/offers",middleware.AuthMiddleware(roleAdmin), controller.OfferAdd)
+	r.DELETE("/offers",middleware.AuthMiddleware(roleAdmin), controller.OfferDelete)
 
-	r.POST("salesxl", controller.SalesReportExcel)
-	r.POST("salespdf", controller.SalesReportPDF)
+	r.GET("sales",middleware.AuthMiddleware(roleAdmin), controller.SalesReport)
+	r.GET("salesexel",middleware.AuthMiddleware(roleAdmin), controller.SalesReportExcel)
+	r.GET("salespdf",middleware.AuthMiddleware(roleAdmin), controller.SalesReportPDF)
 }

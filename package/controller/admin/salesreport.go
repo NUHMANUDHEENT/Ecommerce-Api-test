@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"net/http"
 	"project1/package/initializer"
 	"project1/package/models"
 	"strconv"
@@ -30,6 +29,11 @@ func SalesReport(c *gin.Context) {
 			totalSales++
 		}
 	}
+	c.JSON(200, gin.H{
+		"Total sales Amount": totalamount,
+		"Total sales Count":  totalSales,
+		"Total order Cancel": cancelCount,
+	})
 }
 func SalesReportExcel(c *gin.Context) {
 	var OrderData []models.OrderItems
@@ -39,8 +43,7 @@ func SalesReportExcel(c *gin.Context) {
 		})
 		return
 	}
-
-	//============ Create a new excel file ==============
+	//============ create new exel file ==============
 	file := xlsx.NewFile()
 	sheet, err := file.AddSheet("Sales Report")
 	if err != nil {
@@ -50,7 +53,6 @@ func SalesReportExcel(c *gin.Context) {
 		return
 	}
 
-	// ============== Add headers to the excel sheet ==============
 	headers := []string{"Order ID", "Customer Name", "Product Name", "Order Date", "Total Amount"}
 	row := sheet.AddRow()
 	for _, header := range headers {
@@ -58,26 +60,25 @@ func SalesReportExcel(c *gin.Context) {
 		cell.Value = header
 	}
 
-	//============= Add sales data ===============
+	//============= add sales data ===============
 	var totalAmount float32
 	for _, sale := range OrderData {
 		row := sheet.AddRow()
 		row.AddCell().Value = strconv.Itoa(int(sale.OrderId))
 		row.AddCell().Value = sale.Order.User.Name
 		row.AddCell().Value = sale.Product.Name
-		row.AddCell().Value = sale.Order.OrderDate.Format("2016-02-01") // Convert to string or format as needed
-		row.AddCell().Value = fmt.Sprintf("%d", sale.SubTotal)          // Format total amount
+		row.AddCell().Value = sale.Order.OrderDate.Format("2016-02-01") 
+		row.AddCell().Value = fmt.Sprintf("%d", sale.SubTotal)          
 		totalAmount += float32(sale.SubTotal)
 	}
-	// =========== total amount =============
-    totalRow := sheet.AddRow()
-    totalRow.AddCell()
-    totalRow.AddCell()
-    totalRow.AddCell()
-    totalRow.AddCell().Value = "Total Amount:"
-    totalRow.AddCell().Value = fmt.Sprintf("%.2f", totalAmount)
+	totalRow := sheet.AddRow()
+	totalRow.AddCell()
+	totalRow.AddCell()
+	totalRow.AddCell()
+	totalRow.AddCell().Value = "Total Amount:"
+	totalRow.AddCell().Value = fmt.Sprintf("%.2f", totalAmount)
 
-	// =============== Save the Excel file ============
+	// =============== save exel file into local ============
 	excelPath := "C:/Users/nuhma/Desktop/Week_Task/1st_project/sales_report.xlsx"
 	if err := file.Save(excelPath); err != nil {
 		c.JSON(500, gin.H{
@@ -89,12 +90,11 @@ func SalesReportExcel(c *gin.Context) {
 	c.Writer.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.File(excelPath)
 
-	c.JSON(201,gin.H{
-		"Message":"Excel file generated and sent successfully",
+	c.JSON(201, gin.H{
+		"Message": "Excel file generated and sent successfully",
 	})
-	
-}
 
+}
 
 func SalesReportPDF(c *gin.Context) {
 	var OrderData []models.OrderItems
@@ -105,21 +105,18 @@ func SalesReportPDF(c *gin.Context) {
 		return
 	}
 
-	// Create a new PDF document
+	// ======= create new pdf doc =========
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
-
-	// Set font and font size
 	pdf.SetFont("Arial", "", 12)
 
-	// Add headers to the PDF
 	headers := []string{"Order ID", "Customer", "Product", "Order Date", "Total Amount"}
 	for _, header := range headers {
 		pdf.Cell(40, 10, header)
 	}
 	pdf.Ln(-1)
 
-	// Add sales data to the PDF
+	// ========== add sales data ===========
 	for _, sale := range OrderData {
 		pdf.Cell(40, 10, strconv.Itoa(int(sale.OrderId)))
 		pdf.Cell(40, 10, sale.Order.User.Name)
@@ -129,17 +126,18 @@ func SalesReportPDF(c *gin.Context) {
 		pdf.Ln(-1)
 	}
 
-	// Save the PDF file
+	// ============== save doc into local ================
 	pdfPath := "C:/Users/nuhma/Desktop/Week_Task/1st_project/sales_report.pdf"
 	if err := pdf.OutputFileAndClose(pdfPath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate PDF file"})
+		c.JSON(500, gin.H{"error": "Failed to generate PDF file"})
 		return
 	}
 
-	// Return the PDF file as a download
 	c.Writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", pdfPath))
 	c.Writer.Header().Set("Content-Type", "application/pdf")
 	c.File(pdfPath)
 
-	fmt.Println("PDF file generated and sent successfully")
+	c.JSON(200, gin.H{
+		"Message": "PDF file generated and sent successfully",
+	})
 }
