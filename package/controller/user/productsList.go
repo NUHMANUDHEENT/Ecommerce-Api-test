@@ -24,10 +24,10 @@ func ProductsPage(c *gin.Context) {
 				continue
 			} else {
 				c.JSON(200, gin.H{
-					"Product Id":    val.ID,
-					"product Image": val.ImagePath1,
-					"Product Name":  val.Name,
-					"Product Price": val.Price,
+					"Product Id":                val.ID,
+					"product Image":             val.ImagePath1,
+					"Product Name":              val.Name,
+					"Product Price":             val.Price,
 					"Product Discounted amount": val.Price - uint(discount),
 				})
 			}
@@ -38,7 +38,8 @@ func ProductDetails(c *gin.Context) {
 	var productdetails models.Products
 	id := c.Param("ID")
 	if err := initializer.DB.First(&productdetails, id).Error; err != nil {
-		c.JSON(404, "Can't see product")
+		c.JSON(404, gin.H{
+			"error": "Can't see product"})
 		return
 	}
 	discount := OfferDiscountCalc(int(productdetails.ID))

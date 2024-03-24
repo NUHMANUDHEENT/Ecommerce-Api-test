@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 //============== search anda filter ==================
-func SeaechProduct(c *gin.Context) {
+func SearchProduct(c *gin.Context) {
 	searchQuery := c.Query("query")
 	sortBy := strings.ToLower(c.DefaultQuery("sort", "a_to_z"))
 

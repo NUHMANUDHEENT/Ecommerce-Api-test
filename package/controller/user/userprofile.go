@@ -15,7 +15,8 @@ func UserProfile(c *gin.Context) {
 	userId := c.GetUint("userid")
 
 	if err := initializer.DB.First(&userProfile, userId).Error; err != nil {
-		c.JSON(500, "failed to find user")
+		c.JSON(500, gin.H{
+			"error": "failed to find user"})
 	} else {
 		c.JSON(200, gin.H{
 			"user name":  userProfile.Name,
@@ -25,7 +26,8 @@ func UserProfile(c *gin.Context) {
 		})
 	}
 	if err := initializer.DB.Find(&userAddress, "user_id=?", userId).Error; err != nil {
-		c.JSON(500, "failed to find address")
+		c.JSON(500, gin.H{
+			"error": "failed to find address"})
 	} else {
 		for _, val := range userAddress {
 			c.JSON(200, gin.H{
