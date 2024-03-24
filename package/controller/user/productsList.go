@@ -19,6 +19,7 @@ func ProductsPage(c *gin.Context) {
 		c.JSON(500, "failed to fetch details")
 	} else {
 		for _, val := range products {
+			discount := OfferDiscountCalc(int(val.ID))
 			if !val.Category.Blocking {
 				continue
 			} else {
@@ -27,6 +28,7 @@ func ProductsPage(c *gin.Context) {
 					"product Image": val.ImagePath1,
 					"Product Name":  val.Name,
 					"Product Price": val.Price,
+					"Product Discounted amount": val.Price - uint(discount),
 				})
 			}
 		}
