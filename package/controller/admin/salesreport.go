@@ -12,6 +12,25 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
+func SalesReport(c *gin.Context) {
+	var sales []models.Order
+	var totalamount float64
+	initializer.DB.Find(&sales)
+	for _, val := range sales {
+		totalamount += val.OrderAmount
+	}
+	var salesItems []models.OrderItems
+	var cancelCount int
+	var totalSales int
+	initializer.DB.Find(&salesItems)
+	for _, val := range salesItems {
+		if val.OrderStatus == "cancelled" {
+			cancelCount++
+		} else {
+			totalSales++
+		}
+	}
+}
 func SalesReportExcel(c *gin.Context) {
 	var OrderData []models.OrderItems
 	if err := initializer.DB.Preload("Product").Preload("Order.User").Find(&OrderData).Error; err != nil {
@@ -40,14 +59,23 @@ func SalesReportExcel(c *gin.Context) {
 	}
 
 	//============= Add sales data ===============
+	var totalAmount float32
 	for _, sale := range OrderData {
 		row := sheet.AddRow()
 		row.AddCell().Value = strconv.Itoa(int(sale.OrderId))
 		row.AddCell().Value = sale.Order.User.Name
 		row.AddCell().Value = sale.Product.Name
-		row.AddCell().Value = sale.Order.OrderDate.Format("2016-02-01")   // Convert to string or format as needed
-		row.AddCell().Value = fmt.Sprintf("%.2f", sale.Order.OrderAmount) // Format total amount
+		row.AddCell().Value = sale.Order.OrderDate.Format("2016-02-01") // Convert to string or format as needed
+		row.AddCell().Value = fmt.Sprintf("%d", sale.SubTotal)          // Format total amount
+		totalAmount += float32(sale.SubTotal)
 	}
+	// =========== total amount =============
+    totalRow := sheet.AddRow()
+    totalRow.AddCell()
+    totalRow.AddCell()
+    totalRow.AddCell()
+    totalRow.AddCell().Value = "Total Amount:"
+    totalRow.AddCell().Value = fmt.Sprintf("%.2f", totalAmount)
 
 	// =============== Save the Excel file ============
 	excelPath := "C:/Users/nuhma/Desktop/Week_Task/1st_project/sales_report.xlsx"
@@ -61,8 +89,13 @@ func SalesReportExcel(c *gin.Context) {
 	c.Writer.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.File(excelPath)
 
-	fmt.Println("Excel file generated and sent successfully")
+	c.JSON(201,gin.H{
+		"Message":"Excel file generated and sent successfully",
+	})
+	
 }
+
+
 func SalesReportPDF(c *gin.Context) {
 	var OrderData []models.OrderItems
 	if err := initializer.DB.Preload("Product").Preload("Order.User").Find(&OrderData).Error; err != nil {
@@ -92,7 +125,7 @@ func SalesReportPDF(c *gin.Context) {
 		pdf.Cell(40, 10, sale.Order.User.Name)
 		pdf.Cell(40, 10, sale.Product.Name)
 		pdf.Cell(40, 10, sale.Order.OrderDate.Format("2016-02-01"))
-		pdf.Cell(40, 10, fmt.Sprintf("%.2f", sale.SubTotal))
+		pdf.Cell(40, 10, fmt.Sprintf("%d", sale.SubTotal))
 		pdf.Ln(-1)
 	}
 
