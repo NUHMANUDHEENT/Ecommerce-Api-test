@@ -9,7 +9,11 @@ import (
 
 func AdminOrdersView(c *gin.Context) {
 	var ordersitems []models.OrderItems
-	initializer.DB.Preload("Order").Find(&ordersitems)
+	if err:= initializer.DB.Preload("Order").Find(&ordersitems).Error;err!=nil{
+		c.JSON(500, gin.H{
+			"Error": "can't find orders",
+		})
+	}
 	for _, orderitem := range ordersitems {
 		c.JSON(200, gin.H{
 			"Order item id":  orderitem.Id,
@@ -64,9 +68,11 @@ func AdminCancelOrder(c *gin.Context) {
 		}
 		orderAmount.CouponCode = ""
 	}
-	newAmount := 0.0
-	newAmount = float64(orderItem.SubTotal) + couponRemove.Discount
-	orderAmount.OrderAmount -= newAmount
+	if couponRemove.CouponCondition > int(orderAmount.OrderAmount) {
+		orderAmount.OrderAmount += couponRemove.Discount
+		orderAmount.OrderAmount -= float64(orderItem.SubTotal)
+		orderAmount.CouponCode = ""
+	}
 
 	if err := tx.Save(&orderAmount).Error; err != nil {
 		c.JSON(400, gin.H{

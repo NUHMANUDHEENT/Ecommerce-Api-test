@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"net/http"
 	"project1/package/initializer"
 	"project1/package/models"
 
@@ -23,15 +22,15 @@ func CategoryList(c *gin.Context) {
 func AddCategory(c *gin.Context) {
 	var addcategory models.Category
 	if err := c.ShouldBind(&addcategory); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to bind data"})
+		c.JSON(500, gin.H{"error": "Failed to bind data"})
 		return
 	}
 	addcategory.Blocking = true
 	if result := initializer.DB.Create(&addcategory); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert product"})
+		c.JSON(500, gin.H{"error": "Failed to insert product"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Product created successfully"})
+	c.JSON(200, gin.H{"message": "Product created successfully"})
 }
 func EditCategories(c *gin.Context) {
 	var editcategory models.Category
@@ -39,16 +38,19 @@ func EditCategories(c *gin.Context) {
 	err := initializer.DB.First(&editcategory, id)
 	if err.Error != nil {
 		c.JSON(500, gin.H{"error": "can't find category"})
+		return
+	}
+	erro := c.ShouldBindJSON(&editcategory)
+	if erro != nil {
+		c.JSON(500, gin.H{
+			"error": "failed to bild details"})
 	} else {
-		err := c.ShouldBindJSON(&editcategory)
-		if err != nil {
-			c.JSON(500, "failed to bild details")
-		} else {
-			if err := initializer.DB.Save(&editcategory).Error; err != nil {
-				c.JSON(500, "failed to edit details")
-			}
-			c.JSON(200, "successfully edited category")
+		if err := initializer.DB.Save(&editcategory).Error; err != nil {
+			c.JSON(500, gin.H{
+				"error": "failed to edit details"})
 		}
+		c.JSON(200, gin.H{
+			"error": "successfully edited category"})
 	}
 }
 func DeleteCategories(c *gin.Context) {
@@ -60,13 +62,15 @@ func DeleteCategories(c *gin.Context) {
 	} else {
 		err := initializer.DB.Delete(&deletecategory).Error
 		if err != nil {
-			c.JSON(500, "failed to delete category")
+			c.JSON(500, gin.H{
+				"error": "failed to delete category"})
 		} else {
-			c.JSON(200, "category deleted successfully")
+			c.JSON(200, gin.H{
+				"error": "category deleted successfully"})
 		}
 	}
 }
-func BlockCategory(c *gin.Context){
+func BlockCategory(c *gin.Context) {
 	var blockCategory models.Category
 	id := c.Param("ID")
 	err := initializer.DB.First(&blockCategory, id)
@@ -75,13 +79,16 @@ func BlockCategory(c *gin.Context){
 	} else {
 		if blockCategory.Blocking {
 			blockCategory.Blocking = false
-			c.JSON(200, "Category blocked")
+			c.JSON(200, gin.H{
+				"error": "Category blocked"})
 		} else {
 			blockCategory.Blocking = true
-			c.JSON(200, "Category unblocked")
+			c.JSON(200, gin.H{
+				"error": "Category unblocked"})
 		}
 		if err := initializer.DB.Save(&blockCategory).Error; err != nil {
-			c.JSON(500, "failed to block/unblock Category")
+			c.JSON(500, gin.H{
+				"error": "failed to block/unblock Category"})
 		}
 	}
 }

@@ -24,7 +24,7 @@ func CheckOut(c *gin.Context) {
 		})
 		return
 	}
-	// ============= check if given the payment method and addres =============
+	// ============= check if given payment method and addres =============
 	paymentMethod := c.Request.FormValue("payment")
 	Address, _ := strconv.ParseUint(c.Request.FormValue("address"), 10, 64)
 	if paymentMethod == "" || Address == 0 {
@@ -49,7 +49,7 @@ func CheckOut(c *gin.Context) {
 		totalAmount += Amount
 	}
 
-	// ================== coupon validation===============
+	// ================== coupon validation ===============
 	couponCode = c.Request.FormValue("coupon")
 	var couponCheck models.Coupon
 	var userLimitCheck models.Order
@@ -98,7 +98,7 @@ func CheckOut(c *gin.Context) {
 	if paymentMethod == "ONLINE" {
 		order_id, err := PaymentHandler(orderId, int(totalAmount))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(500, gin.H{"error": err})
 			tx.Rollback()
 			return
 		} else {

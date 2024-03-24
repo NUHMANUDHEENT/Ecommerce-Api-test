@@ -37,7 +37,7 @@ func SalesReport(c *gin.Context) {
 }
 func SalesReportExcel(c *gin.Context) {
 	var OrderData []models.OrderItems
-	if err := initializer.DB.Preload("Product").Preload("Order.User").Find(&OrderData).Error; err != nil {
+	if err := initializer.DB.Order("").Preload("Product").Preload("Order.User").Find(&OrderData).Error; err != nil {
 		c.JSON(500, gin.H{
 			"error": "Failed to fetch sales data",
 		})

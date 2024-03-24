@@ -13,7 +13,6 @@ var AddProduct models.Products
 
 func ProductList(c *gin.Context) {
 	var productList []models.Products
-	// var checkCategory []models.Categories
 	err := initializer.DB.Joins("Category").Find(&productList).Error
 	if err != nil {
 		c.JSON(500, "failed to fetch details")
@@ -30,8 +29,8 @@ func ProductList(c *gin.Context) {
 					"Product Color":    val.Color,
 					"Product Quantity": val.Quantity,
 					"Category name":    val.Category.Category_name,
-					"Product Status": val.Status,
-					"category id":    val.CategoryId,
+					"Product Status":   val.Status,
+					"category id":      val.CategoryId,
 				})
 			}
 		}
@@ -70,7 +69,8 @@ func AddProducts(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err})
 	}
 	if err := initializer.DB.First(&checkCategory, AddProduct.CategoryId).Error; err != nil {
-		c.JSON(500, "no category found")
+		c.JSON(500, gin.H{
+			"error": "no category found"})
 	} else {
 		AddProduct.Status = true
 		c.JSON(http.StatusOK, gin.H{"message": "upload the images"})
@@ -86,12 +86,15 @@ func EditProducts(c *gin.Context) {
 	} else {
 		err := c.ShouldBindJSON(&editProducts)
 		if err != nil {
-			c.JSON(500, "failed to bild details")
+			c.JSON(500, gin.H{
+				"error": "failed to bild details"})
 		} else {
 			if err := initializer.DB.Save(&editProducts).Error; err != nil {
-				c.JSON(500, "failed to edit details")
+				c.JSON(500, gin.H{
+					"error": "failed to edit details"})
 			}
-			c.JSON(200, "successfully edited product")
+			c.JSON(200, gin.H{
+				"Message": "successfully edited product"})
 		}
 	}
 }
@@ -104,9 +107,11 @@ func DeleteProducts(c *gin.Context) {
 	} else {
 		err := initializer.DB.Delete(&deleteProducts).Error
 		if err != nil {
-			c.JSON(500, "failed to delete product")
+			c.JSON(500, gin.H{
+				"error": "failed to delete product"})
 		} else {
-			c.JSON(200, "product deleted successfully")
+			c.JSON(200, gin.H{
+				"message": "product deleted successfully"})
 		}
 	}
 }
@@ -114,5 +119,5 @@ func DeleteRecovery(c *gin.Context) {
 	id := c.Param("ID")
 
 	initializer.DB.Unscoped().Model(&models.Products{}).Where("id=?", id).Update("deleted_at", nil)
-	c.JSON(200,"Recoverd.")
+	c.JSON(200, "Recoverd.")
 }

@@ -9,7 +9,11 @@ import (
 
 func OfferList(c *gin.Context) {
 	var offerList []models.Offer
-	initializer.DB.Find(&offerList)
+	if err := initializer.DB.Find(&offerList).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": "failed to find offers",
+		})
+	}
 	for _, val := range offerList {
 		c.JSON(500, gin.H{
 			"product id": val.ProductId,

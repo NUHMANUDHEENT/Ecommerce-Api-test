@@ -14,17 +14,18 @@ func CouponStore(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"Error": "Failed to bind data",
 		})
-	} else {
-		if err := initializer.DB.Create(&couponView).Error; err != nil {
-			c.JSON(500, gin.H{
-				"Error": "Coupon already exist"})
-		} else {
-			c.JSON(200, gin.H{
-				"message": "New coupon created",
-			})
-		}
+		return
 	}
+	if err := initializer.DB.Create(&couponView).Error; err != nil {
+		c.JSON(500, gin.H{
+			"Error": "Coupon already exist"})
+		return
+	}
+	c.JSON(200, gin.H{
+		"message": "New coupon created",
+	})
 }
+
 func CouponView(c *gin.Context) {
 	var couponView []models.Coupon
 	if err := initializer.DB.Find(&couponView).Error; err != nil {

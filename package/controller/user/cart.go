@@ -14,8 +14,6 @@ func CartView(c *gin.Context) {
 	userId := c.GetUint("userid")
 	var totalAmount = 0
 	var count = 0
-	// =============== find user cart details with join products ================
-
 	if err := initializer.DB.Joins("Product").Where("user_id=?", userId).Find(&cartView).Error; err != nil {
 		c.JSON(500, gin.H{
 			"error": "failed to fetch data",

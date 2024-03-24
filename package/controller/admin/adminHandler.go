@@ -43,7 +43,7 @@ func AdminLogout(c *gin.Context) {
 		})
 		return
 	}
-	middleware.BlacklistedTokens[tokenstring] = true
+	c.SetCookie("jwt_token", "", -1, "", "", false, false)
 	c.JSON(201, gin.H{
 		"message": "logout Successfull",
 	})
