@@ -67,7 +67,7 @@ func SalesReportExcel(c *gin.Context) {
 		row.AddCell().Value = strconv.Itoa(int(sale.OrderId))
 		row.AddCell().Value = sale.Order.User.Name
 		row.AddCell().Value = sale.Product.Name
-		row.AddCell().Value = sale.Order.OrderDate.Format("2016-02-01") 
+		row.AddCell().Value = sale.Order.OrderDate.Format("2006-01-02") 
 		row.AddCell().Value = fmt.Sprintf("%d", sale.SubTotal)          
 		totalAmount += float32(sale.SubTotal)
 	}
@@ -121,7 +121,7 @@ func SalesReportPDF(c *gin.Context) {
 		pdf.Cell(40, 10, strconv.Itoa(int(sale.OrderId)))
 		pdf.Cell(40, 10, sale.Order.User.Name)
 		pdf.Cell(40, 10, sale.Product.Name)
-		pdf.Cell(40, 10, sale.Order.OrderDate.Format("2016-02-01"))
+		pdf.Cell(40, 10, sale.Order.OrderDate.Format("2006-01-02"))
 		pdf.Cell(40, 10, fmt.Sprintf("%d", sale.SubTotal))
 		pdf.Ln(-1)
 	}
