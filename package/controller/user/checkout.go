@@ -94,6 +94,22 @@ func CheckOut(c *gin.Context) {
 			tx.Rollback()
 		}
 	}()
+	// ================ wallet checking ======================
+	if paymentMethod == "WALLET" {
+		var walletCheck models.Wallet
+		if err := initializer.DB.First(&walletCheck, "user_id=?", userId).Error; err != nil {
+			c.JSON(404, gin.H{
+				"error": "failed to fetch wallet ",
+			})
+			return
+		} else if walletCheck.Balance < totalAmount {
+			c.JSON(202, gin.H{
+				"error": "insufficient balance in wallet",
+			})
+			return
+		}
+
+	}
 	// if payment method is online redirect to payment actions ===============
 	if paymentMethod == "ONLINE" {
 		order_id, err := PaymentHandler(orderId, int(totalAmount))
@@ -106,7 +122,7 @@ func CheckOut(c *gin.Context) {
 				"Message":  "please complete the payment",
 				"order id": order_id,
 			})
-			err := initializer.DB.Create(&models.PaymentDetails{
+			err := tx.Create(&models.PaymentDetails{
 				Order_Id:      order_id,
 				Receipt:       uint(orderId),
 				PaymentStatus: "not done",
@@ -116,6 +132,7 @@ func CheckOut(c *gin.Context) {
 				c.JSON(200, gin.H{
 					"error": "failed to store payment data",
 				})
+				tx.Rollback()
 			}
 		}
 	}

@@ -37,7 +37,6 @@ func SalesReport(c *gin.Context) {
 }
 func SalesReportExcel(c *gin.Context) {
 	var OrderData []models.OrderItems
-
 	if err := initializer.DB.Order("").Preload("Product").Preload("Order.User").Find(&OrderData).Error; err != nil {
 		c.JSON(500, gin.H{
 			"error": "Failed to fetch sales data",
@@ -68,8 +67,8 @@ func SalesReportExcel(c *gin.Context) {
 		row.AddCell().Value = strconv.Itoa(int(sale.OrderId))
 		row.AddCell().Value = sale.Order.User.Name
 		row.AddCell().Value = sale.Product.Name
-		row.AddCell().Value = sale.Order.OrderDate.Format("2016-02-01")
-		row.AddCell().Value = fmt.Sprintf("%d", sale.SubTotal)
+		row.AddCell().Value = sale.Order.OrderDate.Format("2016-02-01") 
+		row.AddCell().Value = fmt.Sprintf("%d", sale.SubTotal)          
 		totalAmount += float32(sale.SubTotal)
 	}
 	totalRow := sheet.AddRow()
