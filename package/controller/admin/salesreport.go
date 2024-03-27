@@ -91,7 +91,7 @@ func SalesReportExcel(c *gin.Context) {
 	c.File(excelPath)
 
 	c.JSON(201, gin.H{
-		"Message": "Excel file generated and sent successfully",
+		"message": "Excel file generated and sent successfully",
 	})
 
 }
@@ -138,6 +138,6 @@ func SalesReportPDF(c *gin.Context) {
 	c.File(pdfPath)
 
 	c.JSON(200, gin.H{
-		"Message": "PDF file generated and sent successfully",
+		"message": "PDF file generated and sent successfully",
 	})
 }

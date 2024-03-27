@@ -93,7 +93,7 @@ func OtpCheck(c *gin.Context) {
 			}
 			if err := initializer.DB.First(&LogJs).Error; err != nil {
 				c.JSON(501, gin.H{
-					"Error": "failed to fetch user details for wallet",
+					"error": "failed to fetch user details for wallet",
 				})
 				return
 			}
@@ -147,25 +147,26 @@ func UserLogin(c *gin.Context) {
 	initializer.DB.First(&userPass, "email=?", LogJs.Email)
 	err = bcrypt.CompareHashAndPassword([]byte(userPass.Password), []byte(LogJs.Password))
 	if err != nil {
-		c.JSON(501, gin.H{"Error": "invalid username or password"})
+		c.JSON(501, gin.H{"error": "invalid username or password"})
 	} else {
 		if !userPass.Blocking {
-			c.JSON(300, "User blocked")
+			c.JSON(300, gin.H{
+				"message": "User blocked"})
 		} else {
-			middleware.JwtTokenStart(c, userPass.ID, userPass.Email, RoleUser)
-			c.JSON(200, gin.H{"Message": "login successfully"})
+			token := middleware.JwtTokenStart(c, userPass.ID, userPass.Email, RoleUser)
+			c.SetCookie("jwtToken",token,int((time.Hour* 1).Seconds()),"/","localhost",false,true)
+			c.JSON(200, gin.H{
+				"message": "login successfully",
+				"token":   token,
+			})
 		}
 	}
 }
 func UserLogout(c *gin.Context) {
-	tokenString := c.GetHeader("Authorization")
-	if tokenString == "" {
-		c.JSON(400, gin.H{"error": "Token not provided"})
-		return
-	}
-	c.SetCookie("jwt_token", "", -1, "", "", false, false)
+
+	c.SetCookie("jwtToken", "", -1, "", "", false, false)
 	c.JSON(200, gin.H{
-		"Message": "logout Successfull",
+		"message": "logout Successfull",
 	})
 
 }

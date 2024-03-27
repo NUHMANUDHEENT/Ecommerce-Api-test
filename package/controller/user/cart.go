@@ -19,19 +19,9 @@ func CartView(c *gin.Context) {
 			"error": "failed to fetch data",
 		})
 	} else {
-		var totalDiscount float64
+		var totalDiscount = 0.0
 		for _, val := range cartView {
 			offerDiscount := OfferDiscountCalc(val.ProductId)
-			totalDiscount += offerDiscount
-			c.JSON(200, gin.H{
-				"offer amount":            offerDiscount,
-				"product name":            val.Product.Name,
-				"product image":           val.Product.ImagePath1,
-				"product quantity":        val.Quantity,
-				"product price":           val.Product.Price,
-				"product dicounted price": val.Product.Price - uint(offerDiscount),
-				"product id":              val.Product.ID,
-			})
 			val.Product.Price -= uint(offerDiscount)
 			price := int(val.Quantity) * int(val.Product.Price)
 			totalAmount += price
@@ -40,13 +30,14 @@ func CartView(c *gin.Context) {
 		}
 		if totalAmount == 0 {
 			c.JSON(200, gin.H{
-				"Message": "No product added to cart",
+				"message": "No product added to cart",
 			})
 		} else {
 			c.JSON(200, gin.H{
-				"total products": count,
-				"total discount": totalDiscount,
-				"Total Amount":   totalAmount,
+				"cartItems": cartView,
+				"totalProducts": count,
+				"totalDiscount": totalDiscount,
+				"totalAmount":   totalAmount,
 			})
 		}
 	}
@@ -107,7 +98,7 @@ func CartProductAdd(c *gin.Context) {
 				} else {
 					c.JSON(500, gin.H{
 						"quantity": cartStore.Quantity,
-						"error":    "one more quantity added",
+						"message":    "one more quantity added",
 					})
 				}
 			} else {
@@ -145,7 +136,7 @@ func CartProductRemove(c *gin.Context) {
 			} else {
 				c.JSON(500, gin.H{
 					"quantity": cartStore.Quantity,
-					"error":    "one more quantity removed",
+					"message":    "one more quantity removed",
 				})
 			}
 		} else {
@@ -163,7 +154,7 @@ func CartProductDelete(c *gin.Context) {
 	id := c.Param("ID")
 	if err := initializer.DB.Where("product_id=? AND user_id=?", id, userId).Delete(&ProductRemove).Error; err != nil {
 		c.JSON(500, gin.H{
-			"Error": "failed to remove product",
+			"error": "failed to remove product",
 		})
 	} else {
 		c.JSON(200, gin.H{

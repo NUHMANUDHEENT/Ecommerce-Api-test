@@ -84,15 +84,18 @@ func RatingStore(c *gin.Context) {
 	var ratingStore models.Rating
 	err := c.ShouldBindJSON(&ratingValue)
 	if err != nil {
-		c.JSON(500, "failed to bind data")
+		c.JSON(500, gin.H{
+			"error": "failed to bind data"})
 	}
 	result := initializer.DB.First(&ratingStore, "product_id=?", ratingValue.ProductId)
 	if result.Error != nil {
 		ratingValue.Users = 1
 		if err := initializer.DB.Create(&ratingValue).Error; err != nil {
-			c.JSON(500, "failed to store data")
+			c.JSON(500, gin.H{
+				"error": "failed to store data"})
 		} else {
-			c.JSON(201, "Thanks for rating")
+			c.JSON(201, gin.H{
+				"message": "Thanks for rating"})
 		}
 	} else {
 		err := initializer.DB.Model(&ratingStore).Where("product_id=?", ratingValue.ProductId).Updates(models.Rating{
@@ -100,9 +103,11 @@ func RatingStore(c *gin.Context) {
 			Value: ratingStore.Value + ratingValue.Value,
 		})
 		if err.Error != nil {
-			c.JSON(500, "failed to update data")
+			c.JSON(500, gin.H{
+				"error": "failed to update data"})
 		} else {
-			c.JSON(201, "Thanks for rating")
+			c.JSON(201, gin.H{
+				"message": "Thanks for rating"})
 		}
 	}
 	ratingStore = models.Rating{}
@@ -123,21 +128,25 @@ func RatingCalc(id string, c *gin.Context) float64 {
 func ReviewStore(c *gin.Context) {
 	var reviewStore models.Review
 	if err := c.ShouldBindJSON(&reviewStore); err != nil {
-		c.JSON(500, "failed to bind data")
+		c.JSON(500, gin.H{
+			"error": "failed to bind data"})
 	} else {
 
 		reviewStore.Time = time.Now().Format("2006-01-02")
 		if err := initializer.DB.Create(&reviewStore).Error; err != nil {
-			c.JSON(500, "failed to store review")
+			c.JSON(500, gin.H{
+				"error": "failed to store review"})
 		} else {
-			c.JSON(201, "Thank for your feedback")
+			c.JSON(201, gin.H{
+				"message": "Thank for your feedback"})
 		}
 	}
 }
 func ReviewView(id string, c *gin.Context) {
 	var reviewView []models.Review
 	if err := initializer.DB.Joins("User").Find(&reviewView).Where("product_id=?", id).Error; err != nil {
-		c.JSON(500, "failed to fetch review details")
+		c.JSON(500, gin.H{
+			"error": "failed to fetch review details"})
 	} else {
 		productId, _ := strconv.Atoi(id)
 		for _, val := range reviewView {

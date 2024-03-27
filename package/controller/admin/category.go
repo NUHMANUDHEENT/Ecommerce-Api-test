@@ -10,14 +10,9 @@ import (
 func CategoryList(c *gin.Context) {
 	var categorylist []models.Category
 	initializer.DB.Find(&categorylist)
-	for _, v := range categorylist {
-		c.JSON(200, gin.H{
-			"Id":                   v.ID,
-			"Category_name":        v.Category_name,
-			"Category_description": v.Category_description,
-			"Category_status":      v.Blocking,
-		})
-	}
+	c.JSON(200, gin.H{
+		"categories": categorylist,
+	})
 }
 func AddCategory(c *gin.Context) {
 	var addcategory models.Category
@@ -37,37 +32,38 @@ func EditCategories(c *gin.Context) {
 	id := c.Param("ID")
 	err := initializer.DB.First(&editcategory, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find category"})
+		c.JSON(500, gin.H{"error": "Can't find category"})
 		return
 	}
 	erro := c.ShouldBindJSON(&editcategory)
 	if erro != nil {
 		c.JSON(500, gin.H{
-			"error": "failed to bild details"})
-	} else {
-		if err := initializer.DB.Save(&editcategory).Error; err != nil {
-			c.JSON(500, gin.H{
-				"error": "failed to edit details"})
-		}
-		c.JSON(200, gin.H{
-			"error": "successfully edited category"})
+			"error": "Failed to bild details"})
+		return
 	}
+	if err := initializer.DB.Save(&editcategory).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": "Failed to edit details"})
+		return
+	}
+	c.JSON(200, gin.H{
+		"error": "Successfully edited category"})
 }
 func DeleteCategories(c *gin.Context) {
 	var deletecategory models.Products
 	id := c.Param("ID")
 	err := initializer.DB.First(&deletecategory, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find category"})
+		c.JSON(500, gin.H{"error": "Can't find category"})
+		return
+	}
+	err = initializer.DB.Delete(&deletecategory)
+	if err.Error != nil {
+		c.JSON(500, gin.H{
+			"error": "Failed to delete category"})
 	} else {
-		err := initializer.DB.Delete(&deletecategory).Error
-		if err != nil {
-			c.JSON(500, gin.H{
-				"error": "failed to delete category"})
-		} else {
-			c.JSON(200, gin.H{
-				"error": "category deleted successfully"})
-		}
+		c.JSON(200, gin.H{
+			"error": "Category deleted successfully"})
 	}
 }
 func BlockCategory(c *gin.Context) {
@@ -75,20 +71,20 @@ func BlockCategory(c *gin.Context) {
 	id := c.Param("ID")
 	err := initializer.DB.First(&blockCategory, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find Category"})
+		c.JSON(500, gin.H{"error": "Can't find Category"})
+		return
+	}
+	if blockCategory.Blocking {
+		blockCategory.Blocking = false
+		c.JSON(200, gin.H{
+			"error": "Category blocked"})
 	} else {
-		if blockCategory.Blocking {
-			blockCategory.Blocking = false
-			c.JSON(200, gin.H{
-				"error": "Category blocked"})
-		} else {
-			blockCategory.Blocking = true
-			c.JSON(200, gin.H{
-				"error": "Category unblocked"})
-		}
-		if err := initializer.DB.Save(&blockCategory).Error; err != nil {
-			c.JSON(500, gin.H{
-				"error": "failed to block/unblock Category"})
-		}
+		blockCategory.Blocking = true
+		c.JSON(200, gin.H{
+			"error": "Category unblocked"})
+	}
+	if err := initializer.DB.Save(&blockCategory).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": "Failed to block/unblock Category"})
 	}
 }

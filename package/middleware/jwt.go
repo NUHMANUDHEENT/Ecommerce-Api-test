@@ -9,9 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 var BlacklistedTokens = make(map[string]bool)
-
 
 // var UserData models.Users
 
@@ -22,18 +20,14 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func JwtTokenStart(c *gin.Context, userId uint, email string, role string) {
+func JwtTokenStart(c *gin.Context, userId uint, email string, role string) string {
 	tokenString, err := createToken(userId, email, role)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"Error": "Failed to create Token",
 		})
 	}
-	c.Set("token", tokenString)
-	c.JSON(201, gin.H{
-		"Token": tokenString,
-	})
-	fmt.Println("---------------===  ", tokenString, "  ===-----------------")
+	return tokenString
 }
 
 func createToken(userId uint, email string, role string) (string, error) {
@@ -56,18 +50,15 @@ func createToken(userId uint, email string, role string) (string, error) {
 
 func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
-		if tokenString == "" {
-			c.JSON(401, gin.H{"error": "Token not provided"})
+		tokenString, err := c.Cookie("jwtToken")
+		if err != nil {
+			c.JSON(401, gin.H{
+				"message": "Can't find cookie",
+				"error":   err,
+			})
 			c.Abort()
 			return
 		}
-		if BlacklistedTokens[tokenString] {
-			c.JSON(401, gin.H{"error": "Token revoked"})
-			c.Abort()
-			return
-		}
-
 		claims := &Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("SECRETKEY")), nil

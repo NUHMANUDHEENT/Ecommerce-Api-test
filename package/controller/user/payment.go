@@ -80,7 +80,7 @@ func PaymentConfirmation(c *gin.Context) {
 
 func RazorPaymentVerification(sign, orderId, paymentId string) error {
 	signature := sign
-	secret := "4hciN7tsy9W3dcRV6DK3gZcN"
+	secret := os.Getenv("RAZOR_PAY_SECRET")
 	data := orderId + "|" + paymentId
 	h := hmac.New(sha256.New, []byte(secret))
 	_, err := h.Write([]byte(data))

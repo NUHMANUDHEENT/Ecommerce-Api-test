@@ -63,7 +63,7 @@ func WishlistDelete(c *gin.Context) {
 	id := c.Param("ID")
 	if err := initializer.DB.Where("product_id=? AND user_id=?", id, userId).Delete(&wishlistDelete).Error; err != nil {
 		c.JSON(500, gin.H{
-			"Error": "failed to remove Item",
+			"error": "failed to remove Item",
 		})
 		return
 	}

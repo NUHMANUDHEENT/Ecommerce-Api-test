@@ -52,7 +52,8 @@ func ForgotUserCheck(c *gin.Context) {
 					ExpireAt: time.Now().Add(15 * time.Second),
 				})
 				if err.Error != nil {
-					c.JSON(500, "failed too update data")
+					c.JSON(500, gin.H{
+						"error": "failed too update data"})
 				}
 			}
 		}
@@ -65,7 +66,8 @@ func ForgotOtpCheck(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&otpcheck)
 	if err != nil {
-		c.JSON(500, "failed to bind otp details")
+		c.JSON(500, gin.H{
+			"error": "failed to bind otp details"})
 	}
 	var existingOTP models.OtpMail
 	if err := initializer.DB.Where("otp = ? AND expire_at > ?", otpcheck.Otp, time.Now()).First(&existingOTP).Error; err != nil {
@@ -87,7 +89,7 @@ func NewPasswordSet(c *gin.Context) {
 		err := c.ShouldBindJSON(&newPassSet)
 		if err != nil {
 			c.JSON(500, gin.H{
-				"Error": "failed to bind data",
+				"error": "failed to bind data",
 			})
 		} else {
 			HashPass, err := bcrypt.GenerateFromPassword([]byte(newPassSet.Password), bcrypt.DefaultCost)
@@ -98,7 +100,7 @@ func NewPasswordSet(c *gin.Context) {
 					Password: string(HashPass),
 				}).Error; err != nil {
 					c.JSON(500, gin.H{
-						"Error": "failed to update data",
+						"error": "failed to update data",
 					})
 				} else {
 					c.JSON(201, gin.H{
@@ -110,7 +112,7 @@ func NewPasswordSet(c *gin.Context) {
 		userCheck = models.Users{}
 	} else {
 		c.JSON(501, gin.H{
-			"Error": "verify your eamil first",
+			"error": "verify your eamil first",
 		})
 	}
 	otpValid = false

@@ -16,25 +16,11 @@ func ProductList(c *gin.Context) {
 	err := initializer.DB.Joins("Category").Find(&productList).Error
 	if err != nil {
 		c.JSON(500, "failed to fetch details")
-	} else {
-		for _, val := range productList {
-			if !val.Category.Blocking {
-				continue
-			} else {
-				c.JSON(200, gin.H{
-					"Product Id":       val.ID,
-					"Product Name":     val.Name,
-					"Product Price":    val.Price,
-					"Product Size":     val.Size,
-					"Product Color":    val.Color,
-					"Product Quantity": val.Quantity,
-					"Category name":    val.Category.Category_name,
-					"Product Status":   val.Status,
-					"category id":      val.CategoryId,
-				})
-			}
-		}
+		return
 	}
+	c.JSON(200, gin.H{
+		"products": productList,
+	})
 }
 
 func UploadImage(c *gin.Context) {
@@ -94,7 +80,7 @@ func EditProducts(c *gin.Context) {
 					"error": "failed to edit details"})
 			}
 			c.JSON(200, gin.H{
-				"Message": "successfully edited product"})
+				"message": "successfully edited product"})
 		}
 	}
 }

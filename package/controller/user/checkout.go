@@ -20,7 +20,7 @@ func CheckOut(c *gin.Context) {
 	initializer.DB.Preload("Product").Where("user_id=?", userId).Find(&cartItems)
 	if len(cartItems) == 0 {
 		c.JSON(404, gin.H{
-			"Error": "no cart data found for this user",
+			"error": "no cart data found for this user",
 		})
 		return
 	}
@@ -56,18 +56,18 @@ func CheckOut(c *gin.Context) {
 	if couponCode != "" {
 		if err := initializer.DB.First(&userLimitCheck, "coupon_code", couponCode).Error; err == nil {
 			c.JSON(200, gin.H{
-				"Error": "Coupon already used",
+				"error": "Coupon already used",
 			})
 			return
 		}
 		if err := initializer.DB.Where(" code=? AND valid_from < ? AND valid_to > ? AND coupon_condition <= ?", couponCode, time.Now(), time.Now(), totalAmount).First(&couponCheck).Error; err != nil {
 			c.JSON(200, gin.H{
-				"Error": "Coupon Not valid",
+				"error": "Coupon Not valid",
 			})
 			return
 		} else {
 			c.JSON(200, gin.H{
-				"Messege": "Coupon applied",
+				"message": "Coupon applied",
 			})
 			totalAmount -= couponCheck.Discount
 		}
@@ -119,7 +119,7 @@ func CheckOut(c *gin.Context) {
 			return
 		} else {
 			c.JSON(200, gin.H{
-				"Message":  "please complete the payment",
+				"message":  "please complete the payment",
 				"order id": order_id,
 			})
 			err := tx.Create(&models.PaymentDetails{
@@ -163,7 +163,7 @@ func CheckOut(c *gin.Context) {
 		if err := tx.Create(&OrderItems).Error; err != nil {
 			tx.Rollback()
 			c.JSON(501, gin.H{
-				"Error": "failed to store items details",
+				"error": "failed to store items details",
 			})
 			return
 		}
@@ -195,7 +195,7 @@ func CheckOut(c *gin.Context) {
 	if paymentMethod != "ONLINE" {
 		c.JSON(501, gin.H{
 			"Order":   "Order Placed successfully",
-			"Message": "Order will arrive with in 4 days",
+			"message": "Order will arrive with in 4 days",
 		})
 	}
 }
@@ -223,7 +223,7 @@ func OrderDetails(c *gin.Context) {
 
 	if err := initializer.DB.Where("order_items.order_id=?", orderId).Preload("Order").Preload("Product").Find(&orderitems).Error; err != nil {
 		c.JSON(400, gin.H{
-			"Error": "Can't find order details",
+			"error": "Can't find order details",
 		})
 		return
 	}
@@ -252,14 +252,14 @@ func CancelOrder(c *gin.Context) {
 	} else {
 		if err := tx.First(&orderItem, orderItemId).Error; err != nil {
 			c.JSON(500, gin.H{
-				"Error": "can't find order",
+				"error": "can't find order",
 			})
 			tx.Rollback()
 			return
 		}
 		if orderItem.OrderStatus == "cancelled" {
 			c.JSON(202, gin.H{
-				"Message": "product already cancelled",
+				"message": "product already cancelled",
 			})
 			return
 		}
@@ -275,7 +275,7 @@ func CancelOrder(c *gin.Context) {
 		var orderAmount models.Order
 		if err := tx.First(&orderAmount, orderItem.OrderId).Error; err != nil {
 			c.JSON(400, gin.H{
-				"Error": "failed to find order details",
+				"error": "failed to find order details",
 			})
 			tx.Rollback()
 			return
@@ -285,7 +285,7 @@ func CancelOrder(c *gin.Context) {
 		if orderAmount.CouponCode != "" {
 			if err := initializer.DB.First(&couponRemove, "code=?", orderAmount.CouponCode).Error; err != nil {
 				c.JSON(400, gin.H{
-					"Error": "can't find coupon code",
+					"error": "can't find coupon code",
 				})
 				tx.Rollback()
 			}
@@ -297,7 +297,7 @@ func CancelOrder(c *gin.Context) {
 		}
 		if err := tx.Save(&orderAmount).Error; err != nil {
 			c.JSON(400, gin.H{
-				"Error": "failed to update order details",
+				"error": "failed to update order details",
 			})
 			tx.Rollback()
 			return
@@ -315,12 +315,12 @@ func CancelOrder(c *gin.Context) {
 		}
 		if err := tx.Commit().Error; err != nil {
 			c.JSON(201, gin.H{
-				"Message": "failed to commit transaction",
+				"message": "failed to commit transaction",
 			})
 			tx.Rollback()
 		} else {
 			c.JSON(201, gin.H{
-				"Message": "Order Cancelled",
+				"message": "Order Cancelled",
 			})
 		}
 	}

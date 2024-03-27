@@ -9,21 +9,15 @@ import (
 
 func AdminOrdersView(c *gin.Context) {
 	var ordersitems []models.OrderItems
-	if err:= initializer.DB.Preload("Order").Find(&ordersitems).Error;err!=nil{
+	if err := initializer.DB.Preload("Order").Find(&ordersitems).Error; err != nil {
 		c.JSON(500, gin.H{
-			"Error": "can't find orders",
+			"error": "can't find orders",
 		})
+		return
 	}
-	for _, orderitem := range ordersitems {
-		c.JSON(200, gin.H{
-			"Order item id":  orderitem.Id,
-			"order id":       orderitem.OrderId,
-			"total Amount":   orderitem.SubTotal,
-			"user id":        orderitem.Order.UserId,
-			"payment method": orderitem.Order.OrderPaymentMethod,
-			"order date":     orderitem.Order.OrderDate,
-		})
-	}
+	c.JSON(200, gin.H{
+		"orders": ordersitems,
+	})
 }
 func AdminCancelOrder(c *gin.Context) {
 	id := c.Param("ID")
@@ -31,14 +25,14 @@ func AdminCancelOrder(c *gin.Context) {
 	tx := initializer.DB.Begin()
 	if err := tx.First(&orderItem, id).Error; err != nil {
 		c.JSON(500, gin.H{
-			"Error": "can't find order",
+			"error": "can't find order",
 		})
 		tx.Rollback()
 		return
 	}
 	if orderItem.OrderStatus == "cancelled" {
 		c.JSON(202, gin.H{
-			"Message": "product already cancelled",
+			"message": "product already cancelled",
 		})
 		return
 	}
@@ -53,7 +47,7 @@ func AdminCancelOrder(c *gin.Context) {
 	var orderAmount models.Order
 	if err := tx.First(&orderAmount, orderItem.OrderId).Error; err != nil {
 		c.JSON(400, gin.H{
-			"Error": "failed to find order details",
+			"error": "failed to find order details",
 		})
 		tx.Rollback()
 		return
@@ -62,7 +56,7 @@ func AdminCancelOrder(c *gin.Context) {
 	if orderAmount.CouponCode != "" {
 		if err := initializer.DB.First(&couponRemove, "code=?", orderAmount.CouponCode).Error; err != nil {
 			c.JSON(400, gin.H{
-				"Error": "can't find coupon code",
+				"error": "can't find coupon code",
 			})
 			tx.Rollback()
 		}
@@ -76,14 +70,14 @@ func AdminCancelOrder(c *gin.Context) {
 
 	if err := tx.Save(&orderAmount).Error; err != nil {
 		c.JSON(400, gin.H{
-			"Error": "failed to update order details",
+			"error": "failed to update order details",
 		})
 		tx.Rollback()
 		return
 	}
 	tx.Commit()
 	c.JSON(201, gin.H{
-		"Message": "Order Cancelled",
+		"message": "Order Cancelled",
 	})
 }
 
@@ -93,20 +87,20 @@ func AdminOrderStatus(c *gin.Context) {
 	orderStatusChenge := c.Request.FormValue("status")
 	if orderStatusChenge == "" {
 		c.JSON(500, gin.H{
-			"Error": "Enter the Status",
+			"error": "Enter the Status",
 		})
 		return
 	}
 	if err := initializer.DB.First(&orderStatus, id).Error; err != nil {
 		c.JSON(500, gin.H{
-			"Error": "can't find order",
+			"error": "can't find order",
 		})
 		return
 	}
 	orderStatus.OrderStatus = orderStatusChenge
 	initializer.DB.Save(&orderStatus)
 	c.JSON(200, gin.H{
-		"Message": "order status changed to  " + orderStatusChenge,
+		"message": "order status changed to  " + orderStatusChenge,
 	})
 
 }

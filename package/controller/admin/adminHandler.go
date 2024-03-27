@@ -12,63 +12,63 @@ import (
 var RoleAdmin = "admin"
 
 func AdminPage(c *gin.Context) {
-	c.JSON(200, gin.H{"message": "welcome admin page"})
+	c.JSON(200, gin.H{"message": "Welcome admin page"})
 }
 func AdminLogin(c *gin.Context) {
 	var AdminCheck models.Admins
 	var adminStore models.Admins
 	err := c.ShouldBindJSON(&AdminCheck)
 	if err != nil {
-		c.JSON(501, gin.H{"error": "error binding data"})
+		c.JSON(501, gin.H{"error": "Error binding data"})
 		return
 	}
 	if err := initializer.DB.First(&adminStore, "email=?", AdminCheck.Email).Error; err != nil {
-		c.JSON(501, gin.H{"error": "invalid username or password--"})
+		c.JSON(501, gin.H{"error": "Invalid username or password--"})
 		return
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(adminStore.Password), []byte(AdminCheck.Password))
 	if err != nil {
-		c.JSON(501, gin.H{"error": "invalid username or password"})
+		c.JSON(501, gin.H{"error": "Invalid username or password"})
 		return
 	}
 	middleware.JwtTokenStart(c, adminStore.ID, adminStore.Email, RoleAdmin)
-	c.JSON(202, gin.H{"message": "successfully logged"})
+	c.JSON(202, gin.H{"message": "Successfully logged"})
 }
 
 func AdminLogout(c *gin.Context) {
-	tokenstring := c.GetHeader("Authorization")
+	tokenstring := c.GetHeader("authorization")
 	if tokenstring == "" {
 		c.JSON(400, gin.H{
-			"Error": "Token not provided",
+			"error": "Token not provided",
 		})
 		return
 	}
 	c.SetCookie("jwt_token", "", -1, "", "", false, false)
 	c.JSON(201, gin.H{
-		"message": "logout Successfull",
+		"message": "Logout Successfull",
 	})
 }
 func AdminSignUp(c *gin.Context) {
 	var adminSignUp models.Admins
 	err := c.ShouldBindJSON(&adminSignUp)
 	if err != nil {
-		c.JSON(501, gin.H{"error": "json binding error"})
+		c.JSON(501, gin.H{"error": "Json binding error"})
 		return
 	}
 	HashPass, err := bcrypt.GenerateFromPassword([]byte(adminSignUp.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(501, gin.H{"error": "hashing error"})
+		c.JSON(501, gin.H{"error": "Hashing error"})
 	}
 	adminSignUp.Password = string(HashPass)
 	erro := initializer.DB.Create(&adminSignUp)
 	if erro.Error != nil {
 		c.JSON(500, gin.H{
-			"Error": "failed to signup",
+			"error": "Failed to signup",
 		})
 		return
 	}
 	c.JSON(201, gin.H{
-		"Message": "New admin added",
+		"message": "New admin added",
 	})
 }
 func UserList(c *gin.Context) {
@@ -77,11 +77,11 @@ func UserList(c *gin.Context) {
 	for _, val := range user_managment {
 		c.JSON(200, gin.H{
 			"ID":         val.ID,
-			"name":       val.Name,
+			"Name":       val.Name,
 			"Email":      val.Email,
-			"gender":     val.Gender,
-			"created At": val.CreatedAt,
-			"status":     val.Blocking,
+			"Gender":     val.Gender,
+			"Created_At": val.CreatedAt,
+			"Status":     val.Blocking,
 		})
 	}
 }
@@ -90,14 +90,14 @@ func EditUserDetails(c *gin.Context) {
 	id := c.Param("ID")
 	err := initializer.DB.First(&userEdit, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find user"})
+		c.JSON(500, gin.H{"error": "Can't find user"})
 	} else {
 		err := c.ShouldBindJSON(&userEdit)
 		if err != nil {
-			c.JSON(500, gin.H{"error": "failed to bindinng data"})
+			c.JSON(500, gin.H{"error": "Failed to bindinng data"})
 		} else {
 			if err := initializer.DB.Save(&userEdit).Error; err != nil {
-				c.JSON(500, gin.H{"error": "failed to update details"})
+				c.JSON(500, gin.H{"error": "Failed to update details"})
 			} else {
 				c.JSON(200, gin.H{"message": "User updated successfully"})
 			}
@@ -109,18 +109,24 @@ func BlockUser(c *gin.Context) {
 	id := c.Param("ID")
 	err := initializer.DB.First(&blockUser, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find user"})
+		c.JSON(500, gin.H{"error": "Can't find user"})
+		return
+	}
+	if blockUser.Blocking {
+		blockUser.Blocking = false
+		c.JSON(200, gin.H{
+			"message": "User blocked",
+		})
 	} else {
-		if blockUser.Blocking {
-			blockUser.Blocking = false
-			c.JSON(200, "user blocked")
-		} else {
-			blockUser.Blocking = true
-			c.JSON(200, "user unblocked")
-		}
-		if err := initializer.DB.Save(&blockUser).Error; err != nil {
-			c.JSON(500, "failed to block/unblock user")
-		}
+		blockUser.Blocking = true
+		c.JSON(200, gin.H{
+			"message": "User blocked",
+		})
+	}
+	if err := initializer.DB.Save(&blockUser).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": "Failed to Block/Unblock user",
+		})
 	}
 }
 func DeleteUser(c *gin.Context) {
@@ -128,13 +134,15 @@ func DeleteUser(c *gin.Context) {
 	id := c.Param("ID")
 	err := initializer.DB.First(&deleteUser, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find user"})
-	} else {
-		err := initializer.DB.Delete(&deleteUser).Error
-		if err != nil {
-			c.JSON(500, "failed to delete user")
-		} else {
-			c.JSON(200, "user deleted successfully")
-		}
+		c.JSON(500, gin.H{"error": "Can't find user"})
+		return
 	}
+	err = initializer.DB.Delete(&deleteUser)
+	if err.Error != nil {
+		c.JSON(500, gin.H{
+			"error": "Failed to delete user"})
+		return
+	}
+	c.JSON(200, gin.H{
+		"message": "User deleted successfully"})
 }

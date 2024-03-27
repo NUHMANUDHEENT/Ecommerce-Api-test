@@ -49,7 +49,7 @@ func AddressStore(c *gin.Context) {
 	}
 	if err := initializer.DB.First(&userCheck, userId).Error; err != nil {
 		c.JSON(404, gin.H{
-			"Error": "no user found",
+			"error": "no user found",
 		})
 	} else {
 		addAddress.UserId = int(userId)
@@ -90,7 +90,7 @@ func AddressDelete(c *gin.Context) {
 		err := initializer.DB.Delete(&deleteAddress).Error
 		if err != nil {
 			c.JSON(500, gin.H{
-				"Error": "failed to delete address",
+				"error": "failed to delete address",
 			})
 		} else {
 			c.JSON(200, gin.H{
@@ -104,22 +104,22 @@ func EditUserProfile(c *gin.Context) {
 	userId := c.GetUint("userid")
 	if err := initializer.DB.First(&editProfile, userId).Error; err != nil {
 		c.JSON(404, gin.H{
-			"Error": "user not found",
+			"error": "user not found",
 		})
 	} else {
 		err := c.ShouldBindJSON(&editProfile)
 		if err != nil {
 			c.JSON(500, gin.H{
-				"Error": "failed to bind data",
+				"error": "failed to bind data",
 			})
 		} else {
 			if err := initializer.DB.Save(&editProfile).Error; err != nil {
 				c.JSON(500, gin.H{
-					"Error": "failed to update data",
+					"error": "failed to update data",
 				})
 			} else {
 				c.JSON(500, gin.H{
-					"Message": "updated data",
+					"message": "updated data",
 				})
 			}
 		}
