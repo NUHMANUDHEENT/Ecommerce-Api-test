@@ -60,8 +60,7 @@ type Coupon struct {
 }
 type Offer struct {
 	Id           uint
-	ProductId    int `json:"productid"`
-	Product      Products
+	ProductId    int       `json:"productid"`
 	SpecialOffer string    `json:"offer"`
 	Discount     float64   `json:"discount"`
 	ValidFrom    time.Time `json:"valid_from"`

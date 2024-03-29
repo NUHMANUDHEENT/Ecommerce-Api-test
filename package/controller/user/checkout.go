@@ -17,7 +17,7 @@ func CheckOut(c *gin.Context) {
 	couponCode := ""
 	var cartItems []models.Cart
 	userId := c.GetUint("userid")
-	initializer.DB.Preload("Product").Where("user_id=?", userId).Find(&cartItems)
+	initializer.DB.Preload("Product.Offer").Where("user_id=?", userId).Find(&cartItems)
 	if len(cartItems) == 0 {
 		c.JSON(404, gin.H{
 			"error": "no cart data found for this user",
@@ -38,8 +38,8 @@ func CheckOut(c *gin.Context) {
 	var Amount float64
 	var totalAmount float64
 	for _, val := range cartItems {
-		discount := OfferDiscountCalc(val.ProductId)
-		Amount = ((float64(val.Product.Price) - discount) * float64(val.Quantity))
+		dicount := OfferDiscountCalc(val.ProductId)
+		Amount = ((float64(val.Product.Price) - dicount) * float64(val.Quantity))
 		if val.Quantity > val.Product.Quantity {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Insufficent stock for product " + val.Product.Name,
@@ -66,9 +66,6 @@ func CheckOut(c *gin.Context) {
 			})
 			return
 		} else {
-			c.JSON(200, gin.H{
-				"message": "Coupon applied",
-			})
 			totalAmount -= couponCheck.Discount
 		}
 	}
@@ -205,14 +202,9 @@ func OrderView(c *gin.Context) {
 	var orders []models.Order
 	userId := c.GetUint("userid")
 	initializer.DB.Where("user_id=?", userId).Find(&orders)
-	for _, order := range orders {
-		c.JSON(200, gin.H{
-			"order id":       order.Id,
-			"Amount":         order.OrderAmount,
-			"payment method": order.OrderPaymentMethod,
-			"order date":     order.OrderDate,
-		})
-	}
+	c.JSON(200, gin.H{
+		"orders": orders,
+	})
 	orders = []models.Order{}
 }
 
@@ -227,18 +219,9 @@ func OrderDetails(c *gin.Context) {
 		})
 		return
 	}
-	for _, orderItem := range orderitems {
-		c.JSON(200, gin.H{
-			"order_item Id":    orderItem.Id,
-			"Product":          orderItem.ProductId,
-			"Product name":     orderItem.Product.Name,
-			"Order date":       orderItem.Order.OrderDate,
-			"Amount":           orderItem.SubTotal,
-			"Product quantity": orderItem.Quantity,
-			"Status":           orderItem.OrderStatus,
-			"Address ID":       orderItem.Order.AddressId,
-		})
-	}
+	c.JSON(200, gin.H{
+		"orderitems": orderitems,
+	})
 }
 
 // ============== cancel the order if user don't want ==============

@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var roleuser = "user"
+var roleuser = "User"
 
 func UserGroup(r *gin.RouterGroup) {
 	//==============user authenticatio==============
@@ -65,4 +65,6 @@ func UserGroup(r *gin.RouterGroup) {
 	r.GET("/wishlist", middleware.AuthMiddleware(roleuser), controller.WishlistProducts)
 	r.POST("/wishlist/:ID", middleware.AuthMiddleware(roleuser), controller.WishlistAdd)
 	r.DELETE("/wishlist/:ID", middleware.AuthMiddleware(roleuser), controller.WishlistDelete)
+
+	r.GET("/invoice/:ID", middleware.AuthMiddleware(roleuser), controller.CreateInvoice)
 }

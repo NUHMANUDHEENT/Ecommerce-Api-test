@@ -4,12 +4,13 @@ import (
 	"project1/package/initializer"
 	"project1/package/middleware"
 	"project1/package/models"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
-var RoleAdmin = "admin"
+var RoleAdmin = "Admin"
 
 func AdminPage(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "Welcome admin page"})
@@ -31,7 +32,8 @@ func AdminLogin(c *gin.Context) {
 		c.JSON(501, gin.H{"error": "Invalid username or password"})
 		return
 	}
-	middleware.JwtTokenStart(c, adminStore.ID, adminStore.Email, RoleAdmin)
+	token := middleware.JwtTokenStart(c, adminStore.ID, adminStore.Email, RoleAdmin)
+	c.SetCookie("jwtTokenAdmin", token, int((time.Hour * 1).Seconds()), "/", "localhost", false, true)
 	c.JSON(202, gin.H{"message": "Successfully logged"})
 }
 
@@ -43,7 +45,7 @@ func AdminLogout(c *gin.Context) {
 		})
 		return
 	}
-	c.SetCookie("jwt_token", "", -1, "", "", false, false)
+	c.SetCookie("jwt_tokenAdmin", "", -1, "", "", false, false)
 	c.JSON(201, gin.H{
 		"message": "Logout Successfull",
 	})

@@ -45,12 +45,12 @@ type Cart struct {
 
 type Order struct {
 	Id                 uint
-	UserId             int `json:"order_cart"`
+	UserId             int `json:"orderId"`
 	User               Users
-	AddressId          int `json:"order_address"`
+	AddressId          int `json:"orderAddress"`
 	Address            Address
-	CouponCode         string `json:"order_coupon"`
-	OrderPaymentMethod string `json:"order_payment"`
+	CouponCode         string `json:"orderCoupon"`
+	OrderPaymentMethod string `json:"orderPayment"`
 	OrderAmount        float64
 	OrderDate          time.Time
 	OrderUpdate        time.Time

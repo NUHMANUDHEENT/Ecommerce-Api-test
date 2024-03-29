@@ -50,7 +50,7 @@ func createToken(userId uint, email string, role string) (string, error) {
 
 func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString, err := c.Cookie("jwtToken")
+		tokenString, err := c.Cookie("jwtToken" + requiredRole)
 		if err != nil {
 			c.JSON(401, gin.H{
 				"message": "Can't find cookie",

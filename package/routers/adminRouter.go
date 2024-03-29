@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var roleAdmin = "admin"
+var roleAdmin = "Admin"
 
 func AdminGroup(r *gin.RouterGroup) {
 	//================ admin authentication=======================

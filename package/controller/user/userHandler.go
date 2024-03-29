@@ -15,7 +15,7 @@ import (
 
 var LogJs models.Users
 var otp string
-var RoleUser = "user"
+var RoleUser = "User"
 
 func UserSignUp(c *gin.Context) {
 	LogJs = models.Users{}
@@ -154,7 +154,7 @@ func UserLogin(c *gin.Context) {
 				"message": "User blocked"})
 		} else {
 			token := middleware.JwtTokenStart(c, userPass.ID, userPass.Email, RoleUser)
-			c.SetCookie("jwtToken",token,int((time.Hour* 1).Seconds()),"/","localhost",false,true)
+			c.SetCookie("jwtTokenUser",token,int((time.Hour* 1).Seconds()),"/","localhost",false,true)
 			c.JSON(200, gin.H{
 				"message": "login successfully",
 				"token":   token,
@@ -164,7 +164,7 @@ func UserLogin(c *gin.Context) {
 }
 func UserLogout(c *gin.Context) {
 
-	c.SetCookie("jwtToken", "", -1, "", "", false, false)
+	c.SetCookie("jwtTokenUser", "", -1, "", "", false, false)
 	c.JSON(200, gin.H{
 		"message": "logout Successfull",
 	})
