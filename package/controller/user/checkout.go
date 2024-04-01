@@ -3,7 +3,6 @@ package controller
 import (
 	"crypto/rand"
 	"fmt"
-	"net/http"
 	"project1/package/initializer"
 	"project1/package/models"
 	"strconv"
@@ -17,10 +16,12 @@ func CheckOut(c *gin.Context) {
 	couponCode := ""
 	var cartItems []models.Cart
 	userId := c.GetUint("userid")
-	initializer.DB.Preload("Product.Offer").Where("user_id=?", userId).Find(&cartItems)
+	initializer.DB.Preload("Product").Where("user_id=?", userId).Find(&cartItems)
 	if len(cartItems) == 0 {
 		c.JSON(404, gin.H{
-			"error": "no cart data found for this user",
+			"status":  "Fail",
+			"message": "please add some items to your cart firstly.",
+			"code":    404,
 		})
 		return
 	}
@@ -28,8 +29,19 @@ func CheckOut(c *gin.Context) {
 	paymentMethod := c.Request.FormValue("payment")
 	Address, _ := strconv.ParseUint(c.Request.FormValue("address"), 10, 64)
 	if paymentMethod == "" || Address == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Payment Method and Address are required",
+		c.JSON(400, gin.H{
+			"status": "Fail",
+			"error":  "Payment Method and Address are required",
+			"code":   400,
+		})
+		return
+	}
+	if paymentMethod == "ONLINE" || paymentMethod == "COD" || paymentMethod == "WALLET" {
+	}else{
+		c.JSON(400, gin.H{
+			"status": "Fail",
+			"error":  "Give Proper Payment Method ",
+			"code":   400,
 		})
 		return
 	}
@@ -41,8 +53,10 @@ func CheckOut(c *gin.Context) {
 		dicount := OfferDiscountCalc(val.ProductId)
 		Amount = ((float64(val.Product.Price) - dicount) * float64(val.Quantity))
 		if val.Quantity > val.Product.Quantity {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Insufficent stock for product " + val.Product.Name,
+			c.JSON(400, gin.H{
+				"status": "Fail",
+				"error":  "Insufficent stock for product " + val.Product.Name,
+				"code":   400,
 			})
 			return
 		}
@@ -55,8 +69,10 @@ func CheckOut(c *gin.Context) {
 	var userLimitCheck models.Order
 	if couponCode != "" {
 		if err := initializer.DB.First(&userLimitCheck, "coupon_code", couponCode).Error; err == nil {
-			c.JSON(200, gin.H{
-				"error": "Coupon already used",
+			c.JSON(409, gin.H{
+				"status": "Fail",
+				"error":  "Coupon already used",
+				"code":   409,
 			})
 			return
 		}
@@ -91,17 +107,39 @@ func CheckOut(c *gin.Context) {
 			tx.Rollback()
 		}
 	}()
+	// ============== Delivery charges ==============
+	var ShippingCharge float64
+	if totalAmount < 1000 {
+		ShippingCharge = 40
+		totalAmount += ShippingCharge
+	}
+	// ============== COD checking =====================
+	if paymentMethod == "COD" {
+		if totalAmount > 1000 {
+			c.JSON(202, gin.H{
+				"status":  "Fail",
+				"message": "Greater than 1000 rupees should not accept COD",
+				"totalAmount": totalAmount,
+				"code":    202,
+			})
+			return
+		}
+	}
 	// ================ wallet checking ======================
 	if paymentMethod == "WALLET" {
 		var walletCheck models.Wallet
 		if err := initializer.DB.First(&walletCheck, "user_id=?", userId).Error; err != nil {
 			c.JSON(404, gin.H{
-				"error": "failed to fetch wallet ",
+				"status": "Fail",
+				"error":  "failed to fetch wallet ",
+				"code":   404,
 			})
 			return
 		} else if walletCheck.Balance < totalAmount {
 			c.JSON(202, gin.H{
-				"error": "insufficient balance in wallet",
+				"status": "Fail",
+				"error":  "insufficient balance in wallet",
+				"code":   202,
 			})
 			return
 		}
@@ -111,13 +149,19 @@ func CheckOut(c *gin.Context) {
 	if paymentMethod == "ONLINE" {
 		order_id, err := PaymentHandler(orderId, int(totalAmount))
 		if err != nil {
-			c.JSON(500, gin.H{"error": err})
+			c.JSON(500, gin.H{
+				"status": "Fail",
+				"error":  "Failed to create orderId",
+				"code":   500,
+			})
 			tx.Rollback()
 			return
 		} else {
 			c.JSON(200, gin.H{
-				"message":  "please complete the payment",
-				"order id": order_id,
+				"status":      "Success",
+				"message":     "please complete the payment",
+				"totalAmount": totalAmount,
+				"orderId":    order_id,
 			})
 			err := tx.Create(&models.PaymentDetails{
 				Order_Id:      order_id,
@@ -126,8 +170,10 @@ func CheckOut(c *gin.Context) {
 				PaymentAmount: int(totalAmount),
 			}).Error
 			if err != nil {
-				c.JSON(200, gin.H{
-					"error": "failed to store payment data",
+				c.JSON(401, gin.H{
+					"status": "Fail",
+					"error":  "failed to store payment data",
+					"code":   401,
 				})
 				tx.Rollback()
 			}
@@ -140,12 +186,17 @@ func CheckOut(c *gin.Context) {
 		OrderPaymentMethod: paymentMethod,
 		AddressId:          int(Address),
 		OrderAmount:        totalAmount,
+		ShippingCharge:     ShippingCharge,
 		OrderDate:          time.Now(),
 		CouponCode:         couponCode,
 	}
 	if err := tx.Create(&order).Error; err != nil {
 		tx.Rollback()
-		c.JSON(500, "failed to place order")
+		c.JSON(500, gin.H{
+			"status": "Fail",
+			"error":  "failed to place order",
+			"code":   500,
+		})
 		return
 	}
 	// ============ insert order items into database ==================
@@ -160,7 +211,9 @@ func CheckOut(c *gin.Context) {
 		if err := tx.Create(&OrderItems).Error; err != nil {
 			tx.Rollback()
 			c.JSON(501, gin.H{
-				"error": "failed to store items details",
+				"status": "Fail",
+				"error":  "failed to store items details",
+				"code":   501,
 			})
 			return
 		}
@@ -171,7 +224,9 @@ func CheckOut(c *gin.Context) {
 			if err := tx.Save(val.Product).Error; err != nil {
 				tx.Rollback()
 				c.JSON(500, gin.H{
-					"error": "Failed to Update Product Stock",
+					"status": "Fail",
+					"error":  "Failed to Update Product Stock",
+					"code":   500,
 				})
 				return
 			}
@@ -180,19 +235,30 @@ func CheckOut(c *gin.Context) {
 	// =============== delete all items from user cart ==============
 	if err := tx.Where("user_id =?", userId).Delete(&models.Cart{}); err.Error != nil {
 		tx.Rollback()
-		c.JSON(400, "faild to delete datas in cart.")
+		c.JSON(400, gin.H{
+			"status": "Fail",
+			"error":  "faild to delete datas in cart.",
+			"code":   400,
+		})
 		return
 	}
 	//================= commit transaction whether no error ==================
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		c.JSON(500, "failed to commit transaction")
+		c.JSON(500, gin.H{
+			"status": "Fail",
+			"error":  "failed to commit transaction",
+			"code":   500,
+		})
 		return
 	}
 	if paymentMethod != "ONLINE" {
 		c.JSON(501, gin.H{
-			"Order":   "Order Placed successfully",
-			"message": "Order will arrive with in 4 days",
+			"status":      "Success",
+			"Order":       "Order Placed successfully",
+			"payment":     "COD",
+			"totalAmount": totalAmount,
+			"message":     "Order will arrive with in 4 days",
 		})
 	}
 }
@@ -203,6 +269,7 @@ func OrderView(c *gin.Context) {
 	userId := c.GetUint("userid")
 	initializer.DB.Where("user_id=?", userId).Find(&orders)
 	c.JSON(200, gin.H{
+		"status": "success",
 		"orders": orders,
 	})
 	orders = []models.Order{}
@@ -212,15 +279,23 @@ func OrderView(c *gin.Context) {
 func OrderDetails(c *gin.Context) {
 	var orderitems []models.OrderItems
 	orderId := c.Param("ID")
-
 	if err := initializer.DB.Where("order_items.order_id=?", orderId).Preload("Order").Preload("Product").Find(&orderitems).Error; err != nil {
 		c.JSON(400, gin.H{
-			"error": "Can't find order details",
+			"status": "Fail",
+			"error":  "Can't find order details",
+			"code":   400,
 		})
 		return
 	}
+	var subTotal float64
+	for _,val:= range  orderitems{
+         subTotal +=  float64(val.SubTotal)
+	}
+
 	c.JSON(200, gin.H{
+		"status":   "Success",
 		"orderitems": orderitems,
+		"subTotal":   subTotal,
 	})
 }
 
@@ -231,18 +306,26 @@ func CancelOrder(c *gin.Context) {
 	reason := c.Request.FormValue("reason")
 	tx := initializer.DB.Begin()
 	if reason == "" {
-		c.JSON(500, "please give the reason")
+		c.JSON(402, gin.H{
+			"status":  "Fail",
+			"message": "Please provide a valid cancellation reason.",
+			"code":    402,
+		})
 	} else {
 		if err := tx.First(&orderItem, orderItemId).Error; err != nil {
-			c.JSON(500, gin.H{
-				"error": "can't find order",
+			c.JSON(404, gin.H{
+				"status": "Fail",
+				"error":  "can't find order",
+				"code":   404,
 			})
 			tx.Rollback()
 			return
 		}
 		if orderItem.OrderStatus == "cancelled" {
 			c.JSON(202, gin.H{
+				"status":  "Fail",
 				"message": "product already cancelled",
+				"code":    202,
 			})
 			return
 		}
@@ -250,15 +333,21 @@ func CancelOrder(c *gin.Context) {
 		orderItem.OrderStatus = "cancelled"
 		orderItem.OrderCancelReason = reason
 		if err := tx.Save(&orderItem).Error; err != nil {
-			c.JSON(500, "Failed to update status")
+			c.JSON(500,gin.H{
+				"status":"Fail",
+				"error":"Failed to  save changes to database.",
+				"code":500,
+			})
 			tx.Rollback()
 			return
 		}
 
 		var orderAmount models.Order
 		if err := tx.First(&orderAmount, orderItem.OrderId).Error; err != nil {
-			c.JSON(400, gin.H{
+			c.JSON(404, gin.H{
+				"status": "Fail",
 				"error": "failed to find order details",
+				"code":  404,
 			})
 			tx.Rollback()
 			return
@@ -267,8 +356,10 @@ func CancelOrder(c *gin.Context) {
 		var couponRemove models.Coupon
 		if orderAmount.CouponCode != "" {
 			if err := initializer.DB.First(&couponRemove, "code=?", orderAmount.CouponCode).Error; err != nil {
-				c.JSON(400, gin.H{
+				c.JSON(404, gin.H{
+					"status": "Fail",
 					"error": "can't find coupon code",
+					"code":   404,
 				})
 				tx.Rollback()
 			}
@@ -279,8 +370,10 @@ func CancelOrder(c *gin.Context) {
 			orderAmount.CouponCode = ""
 		}
 		if err := tx.Save(&orderAmount).Error; err != nil {
-			c.JSON(400, gin.H{
+			c.JSON(500, gin.H{
+				"status": "Fail",
 				"error": "failed to update order details",
+				"code":   500,
 			})
 			tx.Rollback()
 			return
@@ -288,7 +381,9 @@ func CancelOrder(c *gin.Context) {
 		var walletUpdate models.Wallet
 		if err := tx.First(&walletUpdate, "user_id=?", orderAmount.UserId).Error; err != nil {
 			c.JSON(501, gin.H{
+				"status": "Fail",
 				"error": "failed to fetch wallet details",
+				"code":   501,
 			})
 			tx.Rollback()
 			return
@@ -298,12 +393,16 @@ func CancelOrder(c *gin.Context) {
 		}
 		if err := tx.Commit().Error; err != nil {
 			c.JSON(201, gin.H{
+				"status": "Fail",
 				"message": "failed to commit transaction",
+				"code":    201,
 			})
 			tx.Rollback()
 		} else {
 			c.JSON(201, gin.H{
+				"status":   "Success",
 				"message": "Order Cancelled",
+				"data":     orderItem.OrderStatus,
 			})
 		}
 	}

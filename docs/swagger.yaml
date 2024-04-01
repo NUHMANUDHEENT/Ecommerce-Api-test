@@ -1,0 +1,25 @@
+info:
+  contact: {}
+paths:
+  /admin/user:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of users from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      summary: Get a list of users
+      tags:
+      - admin
+swagger: "2.0"

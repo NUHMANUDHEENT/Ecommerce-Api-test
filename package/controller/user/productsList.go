@@ -16,7 +16,12 @@ func ProductsPage(c *gin.Context) {
 	products = []models.Products{}
 	err := initializer.DB.Joins("Category").Find(&products).Error
 	if err != nil {
-		c.JSON(500, "failed to fetch details")
+		c.JSON(500,gin.H{
+			"status": "Fail",
+			"error":"Failed to find products",
+			"code": 500,
+
+		})
 	} else {
 		for _, val := range products {
 			discount := OfferDiscountCalc(int(val.ID))

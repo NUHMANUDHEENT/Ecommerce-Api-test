@@ -8,25 +8,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// -------------------product managment-----------------
+// ================= product managment =============
 var AddProduct models.Products
 
 func ProductList(c *gin.Context) {
 	var productList []models.Products
 	err := initializer.DB.Joins("Category").Find(&productList).Error
 	if err != nil {
-		c.JSON(500, "failed to fetch details")
+		c.JSON(500, gin.H{
+			"status":  "Fail",
+			"message": "failed to fetch details",
+			"code":    500,
+		})
 		return
 	}
 	c.JSON(200, gin.H{
-		"products": productList,
+		"status": "Success",
+		"data":   productList,
 	})
 }
 
 func UploadImage(c *gin.Context) {
 	file, err := c.MultipartForm()
 	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to fetch images"})
+		c.JSON(403, gin.H{
+			"status": "Failed",
+			"error":  "failed to fetch images",
+			"code":   403,
+		})
 	}
 	files := file.File["images"]
 	var imagePaths []string
@@ -34,7 +43,11 @@ func UploadImage(c *gin.Context) {
 	for _, val := range files {
 		filePath := "./images/" + val.Filename
 		if err = c.SaveUploadedFile(val, filePath); err != nil {
-			c.JSON(500, "faield to save images")
+			c.JSON(500, gin.H{
+				"status":  "Fail",
+				"message": "faield to save images",
+				"code":    500,
+			})
 		}
 		imagePaths = append(imagePaths, filePath)
 	}
@@ -42,9 +55,17 @@ func UploadImage(c *gin.Context) {
 	AddProduct.ImagePath2 = imagePaths[1]
 	AddProduct.ImagePath3 = imagePaths[2]
 	if result := initializer.DB.Create(&AddProduct); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert product"})
+		c.JSON(500, gin.H{
+			"status": "Fail",
+			"error":  "Failed to insert product",
+			"code":   500,
+		})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"message": "Product created successfully"})
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "Success",
+			"message": "Product created successfully",
+			"data":    AddProduct,
+		})
 	}
 }
 
@@ -52,14 +73,23 @@ func AddProducts(c *gin.Context) {
 	AddProduct = models.Products{}
 	var checkCategory models.Category
 	if err := c.ShouldBindJSON(&AddProduct); err != nil {
-		c.JSON(500, gin.H{"error": err})
+		c.JSON(500, gin.H{
+			"status": "Fail",
+			"error":  err,
+			"code":   500,
+		})
 	}
 	if err := initializer.DB.First(&checkCategory, AddProduct.CategoryId).Error; err != nil {
 		c.JSON(500, gin.H{
-			"error": "no category found"})
+			"status": "Fail",
+			"error":  "no category found",
+			"code":   500,
+		})
 	} else {
 		AddProduct.Status = true
-		c.JSON(http.StatusOK, gin.H{"message": "upload the images"})
+		c.JSON(http.StatusOK, gin.H{
+			"status":"Continue",
+			"message": "upload the images"})
 	}
 }
 
@@ -68,19 +98,32 @@ func EditProducts(c *gin.Context) {
 	id := c.Param("ID")
 	err := initializer.DB.First(&editProducts, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find Product"})
+		c.JSON(404, gin.H{
+			"status": "Fail",
+			"error":  "can't find Product",
+			"code":   404,
+		})
 	} else {
 		err := c.ShouldBindJSON(&editProducts)
 		if err != nil {
 			c.JSON(500, gin.H{
-				"error": "failed to bild details"})
+				"status": "Fail",
+				"error":  "failed to bild details",
+				"code":   500,
+			})
 		} else {
 			if err := initializer.DB.Save(&editProducts).Error; err != nil {
 				c.JSON(500, gin.H{
-					"error": "failed to edit details"})
+					"status": "Fail",
+					"error":  "failed to edit details",
+					"code":   500,
+				})
 			}
 			c.JSON(200, gin.H{
-				"message": "successfully edited product"})
+				"status":"Success",
+				"message": "successfully edited product",
+				"data": editProducts,
+			})
 		}
 	}
 }
@@ -89,21 +132,28 @@ func DeleteProducts(c *gin.Context) {
 	id := c.Param("ID")
 	err := initializer.DB.First(&deleteProducts, id)
 	if err.Error != nil {
-		c.JSON(500, gin.H{"error": "can't find Product"})
+		c.JSON(404, gin.H{
+			"status": "Fail",
+			"error":  "can't find Product",
+			"code":   404,
+		})
 	} else {
 		err := initializer.DB.Delete(&deleteProducts).Error
 		if err != nil {
 			c.JSON(500, gin.H{
-				"error": "failed to delete product"})
+				"status": "Fail",
+				"error":  "failed to delete product",
+				"code":   500,
+			})
 		} else {
 			c.JSON(200, gin.H{
+				"status":"Success",
 				"message": "product deleted successfully"})
 		}
 	}
 }
 func DeleteRecovery(c *gin.Context) {
 	id := c.Param("ID")
-
 	initializer.DB.Unscoped().Model(&models.Products{}).Where("id=?", id).Update("deleted_at", nil)
 	c.JSON(200, "Recoverd.")
 }

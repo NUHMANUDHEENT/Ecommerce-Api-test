@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"project1/package/initializer"
 	"project1/package/models"
@@ -40,11 +39,14 @@ func PaymentConfirmation(c *gin.Context) {
 	var paymentStore models.PaymentDetails
 	var paymentDetails = make(map[string]string)
 	if err := c.BindJSON(&paymentDetails); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(400, gin.H{
+			"status": "fail",
+			"error":  "Invalid request body",
+			"code":   400,
+		})
 		return
 	}
 	pd := paymentDetails
-
 	//============== verify the signature ================
 	err := RazorPaymentVerification(pd["signature"], pd["order_id"], pd["payment_id"])
 	if err != nil {
@@ -69,10 +71,7 @@ func PaymentConfirmation(c *gin.Context) {
 		initializer.DB.First(&productQuantity, val.ProductId)
 		productQuantity.Quantity -= val.Quantity
 		if err := initializer.DB.Save(&productQuantity).Error; err != nil {
-			c.JSON(500, gin.H{
-				"error": "Failed to Update Product Stock",
-			})
-			return
+			fmt.Println("failed to save  updated quantity of products in db")
 		}
 	}
 	fmt.Println("payment done , order placed successfully")

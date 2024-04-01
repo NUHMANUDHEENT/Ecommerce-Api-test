@@ -63,13 +63,8 @@ func SearchProduct(c *gin.Context) {
 	}
 	var items []models.Products
 	query.Joins("Category").Find(&items)
-
-	for _, v := range items {
 		c.JSON(200, gin.H{
-			"Name":     v.Name,
-			"Price":    v.Price,
-			"Category": v.Category.Category_name,
-			"ID":       v.ID,
+			"status": "success",
+			"data":  items,
 		})
 	}
-}

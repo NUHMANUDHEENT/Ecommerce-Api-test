@@ -30,16 +30,18 @@ func SalesReport(c *gin.Context) {
 		}
 	}
 	c.JSON(200, gin.H{
-		"Total sales Amount": totalamount,
-		"Total sales Count":  totalSales,
-		"Total order Cancel": cancelCount,
+		"TotalSalesAmount": totalamount,
+		"TotalSalesCount":  totalSales,
+		"TotalOrderCancel": cancelCount,
 	})
 }
 func SalesReportExcel(c *gin.Context) {
 	var OrderData []models.OrderItems
 	if err := initializer.DB.Order("").Preload("Product").Preload("Order.User").Find(&OrderData).Error; err != nil {
 		c.JSON(500, gin.H{
+			"status":"Fail",
 			"error": "Failed to fetch sales data",
+			"code":500,
 		})
 		return
 	}
@@ -48,7 +50,9 @@ func SalesReportExcel(c *gin.Context) {
 	sheet, err := file.AddSheet("Sales Report")
 	if err != nil {
 		c.JSON(500, gin.H{
+			"status":"Fail",
 			"error": "Failed to create Excel sheet",
+			"code":500,
 		})
 		return
 	}
@@ -82,7 +86,9 @@ func SalesReportExcel(c *gin.Context) {
 	excelPath := "C:/Users/nuhma/Desktop/Week_Task/1st_project/sales_report.xlsx"
 	if err := file.Save(excelPath); err != nil {
 		c.JSON(500, gin.H{
+			"status":"Fail",
 			"error": "Failed to save Excel file",
+			"code":500,
 		})
 		return
 	}
@@ -91,6 +97,7 @@ func SalesReportExcel(c *gin.Context) {
 	c.File(excelPath)
 
 	c.JSON(201, gin.H{
+		"status":"Success",
 		"message": "Excel file generated and sent successfully",
 	})
 
@@ -100,7 +107,9 @@ func SalesReportPDF(c *gin.Context) {
 	var OrderData []models.OrderItems
 	if err := initializer.DB.Preload("Product").Preload("Order.User").Find(&OrderData).Error; err != nil {
 		c.JSON(500, gin.H{
+			"status":"Fail",
 			"error": "Failed to fetch sales data",
+			"code":500,
 		})
 		return
 	}
@@ -129,7 +138,11 @@ func SalesReportPDF(c *gin.Context) {
 	// ============== save doc into local ================
 	pdfPath := "C:/Users/nuhma/Desktop/Week_Task/1st_project/sales_report.pdf"
 	if err := pdf.OutputFileAndClose(pdfPath); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to generate PDF file"})
+		c.JSON(500, gin.H{
+			"status":"Fail",
+			"error": "Failed to generate PDF file",
+			"code": 500,
+		})
 		return
 	}
 
@@ -138,6 +151,7 @@ func SalesReportPDF(c *gin.Context) {
 	c.File(pdfPath)
 
 	c.JSON(200, gin.H{
+		"status":"Success",
 		"message": "PDF file generated and sent successfully",
 	})
 }

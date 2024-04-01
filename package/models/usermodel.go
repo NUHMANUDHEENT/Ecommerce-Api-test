@@ -52,6 +52,7 @@ type Order struct {
 	CouponCode         string `json:"orderCoupon"`
 	OrderPaymentMethod string `json:"orderPayment"`
 	OrderAmount        float64
+	ShippingCharge     float64
 	OrderDate          time.Time
 	OrderUpdate        time.Time
 }
@@ -74,16 +75,16 @@ type PaymentDetails struct {
 	PaymentStatus string
 	PaymentAmount int
 }
-type Wallet struct{
+type Wallet struct {
 	gorm.Model
 	User_id int
-	User Users
+	User    Users
 	Balance float64
 }
-type Wishlist struct{
-	Id uint
-	UserId int
-	User Users
+type Wishlist struct {
+	Id        uint
+	UserId    int
+	User      Users
 	ProductId int
-	Product Products
+	Product   Products
 }

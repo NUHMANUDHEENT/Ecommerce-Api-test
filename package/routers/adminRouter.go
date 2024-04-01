@@ -13,11 +13,11 @@ func AdminGroup(r *gin.RouterGroup) {
 	//================ admin authentication=======================
 	r.GET("/login", controller.AdminLogin)
 	r.GET("/logout", controller.AdminLogout)
-	r.POST("/signup",middleware.AuthMiddleware(roleAdmin), controller.AdminSignUp)
+	r.POST("/signup", middleware.AuthMiddleware(roleAdmin), controller.AdminSignUp)
 	r.GET("/", middleware.AuthMiddleware(roleAdmin), controller.AdminPage)
 
 	//================User managment=======================
-	r.GET("/user", middleware.AuthMiddleware(roleAdmin), controller.UserList)
+	r.GET("/user", controller.UserList)
 	r.PATCH("/user/:ID", middleware.AuthMiddleware(roleAdmin), controller.EditUserDetails)
 	r.PATCH("/userblock/:ID", middleware.AuthMiddleware(roleAdmin), controller.BlockUser)
 	r.DELETE("/user/:ID", middleware.AuthMiddleware(roleAdmin), controller.DeleteUser)
@@ -48,11 +48,14 @@ func AdminGroup(r *gin.RouterGroup) {
 	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminCancelOrder)
 
 	// =================== offers management =====================
-	r.GET("/offers",middleware.AuthMiddleware(roleAdmin), controller.OfferList)
-	r.POST("/offers",middleware.AuthMiddleware(roleAdmin), controller.OfferAdd)
-	r.DELETE("/offers",middleware.AuthMiddleware(roleAdmin), controller.OfferDelete)
+	r.GET("/offers", middleware.AuthMiddleware(roleAdmin), controller.OfferList)
+	r.POST("/offers", middleware.AuthMiddleware(roleAdmin), controller.OfferAdd)
+	r.DELETE("/offers", middleware.AuthMiddleware(roleAdmin), controller.OfferDelete)
 
-	r.GET("sales",middleware.AuthMiddleware(roleAdmin), controller.SalesReport)
-	r.GET("salesexel",middleware.AuthMiddleware(roleAdmin), controller.SalesReportExcel)
-	r.GET("salespdf",middleware.AuthMiddleware(roleAdmin), controller.SalesReportPDF)
+	// ===================== sales report =========================
+	r.GET("/sales", middleware.AuthMiddleware(roleAdmin), controller.SalesReport)
+	r.GET("/salesexel", middleware.AuthMiddleware(roleAdmin), controller.SalesReportExcel)
+	r.GET("/salespdf", middleware.AuthMiddleware(roleAdmin), controller.SalesReportPDF)
+
+	r.GET("/bestproduct", controller.BestProducts)
 }
