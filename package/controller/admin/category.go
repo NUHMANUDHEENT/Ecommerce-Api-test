@@ -11,7 +11,7 @@ func CategoryList(c *gin.Context) {
 	var categorylist []models.Category
 	initializer.DB.Find(&categorylist)
 	c.JSON(200, gin.H{
-		"status":     "Fail",
+		"status":     "Success",
 		"categories": categorylist,
 	})
 }

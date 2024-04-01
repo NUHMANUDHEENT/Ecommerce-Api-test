@@ -1,18 +1,15 @@
 package controller
 
 import (
-	"fmt"
 	"project1/package/initializer"
 	"project1/package/models"
 
 	"github.com/gin-gonic/gin"
 )
 
-
 func BestProducts(c *gin.Context) {
 	var BestProduct []models.Products
 	query := c.Query("query")
-	fmt.Println("---", query)
 	switch query {
 	case "product":
 		if err := initializer.DB.Table("order_items oi").Select("p.name, p.price , COUNT(oi.quantity) quantity").
@@ -24,7 +21,7 @@ func BestProducts(c *gin.Context) {
 			c.JSON(500, gin.H{
 				"status":  "Fail",
 				"message": err.Error(),
-				"code": 500,
+				"code":    500,
 			})
 			return
 		}
@@ -38,10 +35,10 @@ func BestProducts(c *gin.Context) {
 			Order("quantity DESC").
 			Limit(10).
 			Scan(&BestCategory).Error; err != nil {
-			c.JSON(500,gin.H{
-				"status":"Fail",
-				"message":err,
-				"code":500,
+			c.JSON(500, gin.H{
+				"status":  "Fail",
+				"message": err,
+				"code":    500,
 			})
 			return
 		}

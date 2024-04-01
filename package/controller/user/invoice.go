@@ -54,7 +54,7 @@ func CreateInvoice(c *gin.Context) {
 	pdf.Ln(30)
 	pdf.Cell(10, -32, "Invoice No: "+orderId)
 	pdf.Ln(5)
-	pdf.Cell(10, -32, "Invoice Date: "+"21/2022")
+	pdf.Cell(10, -32, "Invoice Date: "+order.OrderDate.Format("2006-01-02"))
 	pdf.Ln(15)
 	pdf.SetFont("Arial", "", 12)
 	pdf.Cell(10, -32, "Bill To: ")
@@ -106,16 +106,16 @@ func CreateInvoice(c *gin.Context) {
 	Discount = totalAmount - order.OrderAmount
 	totalAmount -= float64(Discount)
 	if Discount > 0 {
-		pdf.CellFormat(150, 10, "dicount:", "1", 0, "R", true, 0, "")
+		pdf.CellFormat(150, 10, "Discount:", "1", 0, "R", true, 0, "")
 		pdf.CellFormat(40, 10, fmt.Sprintf("%2.f", Discount), "1", 0, "R", true, 0, "")
+		pdf.Ln(10)
 	}
-	pdf.Ln(10)
 	if order.ShippingCharge > 0 {
 		totalAmount += order.ShippingCharge
 		pdf.CellFormat(150, 10, "Shipping charge:", "1", 0, "R", true, 0, "")
 		pdf.CellFormat(40, 10, fmt.Sprintf("%2.f", order.ShippingCharge), "1", 0, "R", true, 0, "")
+		pdf.Ln(10)
 	}
-	pdf.Ln(10)
 	Discount = 0
 	pdf.CellFormat(150, 10, "Total Amount: ", "1", 0, "R", true, 0, "")
 	pdf.CellFormat(40, 10, fmt.Sprintf("%.2f", totalAmount), "1", 0, "R", true, 0, "")

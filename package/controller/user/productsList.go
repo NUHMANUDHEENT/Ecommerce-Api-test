@@ -16,73 +16,70 @@ func ProductsPage(c *gin.Context) {
 	products = []models.Products{}
 	err := initializer.DB.Joins("Category").Find(&products).Error
 	if err != nil {
-		c.JSON(500,gin.H{
+		c.JSON(500, gin.H{
 			"status": "Fail",
-			"error":"Failed to find products",
-			"code": 500,
-
+			"error":  "Failed to find products",
+			"code":   500,
 		})
-	} else {
-		for _, val := range products {
-			discount := OfferDiscountCalc(int(val.ID))
-			if !val.Category.Blocking {
-				continue
-			} else {
-				c.JSON(200, gin.H{
-					"Product Id":                val.ID,
-					"product Image":             val.ImagePath1,
-					"Product Name":              val.Name,
-					"Product Price":             val.Price,
-					"Product Discounted amount": val.Price - uint(discount),
-				})
-			}
-		}
+		return
 	}
+
+	c.JSON(200, gin.H{
+		"status": "Success",
+		"data":   products,
+	})
 }
+
 func ProductDetails(c *gin.Context) {
 	var productdetails models.Products
+	var quantity string
 	id := c.Param("ID")
 	if err := initializer.DB.First(&productdetails, id).Error; err != nil {
 		c.JSON(404, gin.H{
-			"error": "Can't see product"})
+			"status": "Find",
+			"error":  "Can't see product",
+			"code":   404,
+		})
 		return
 	}
-	discount := OfferDiscountCalc(int(productdetails.ID))
-	c.JSON(200, gin.H{
-		"product image":           productdetails.ImagePath1,
-		"product image1":          productdetails.ImagePath2,
-		"product image2":          productdetails.ImagePath3,
-		"Product Name":            productdetails.Name,
-		"Product Size":            productdetails.Size,
-		"Product Color":           productdetails.Color,
-		"Product Price":           productdetails.Price,
-		"product dicounted price": productdetails.Price - uint(discount),
-		"Product descreiption ":   productdetails.Description,
-	})
 	if productdetails.Quantity == 0 {
-		c.JSON(200, gin.H{
-			"Stock Status": "Out of Stock"})
+		quantity = "Out of stock"
 	} else {
-		c.JSON(200, gin.H{
-			"Stock Status": "Item is currently available"})
-	}
-	rating := RatingCalc(id, c)
-	c.JSON(200, gin.H{
-		"Rating": rating,
-	})
-	ReviewView(id, c)
-	for _, val := range products {
-		if productdetails.CategoryId == int(val.Category.ID) && val.ID != productdetails.ID {
-			c.JSON(200, "related products")
-			c.JSON(200, gin.H{
-				"product image": val.ImagePath1,
-				"product name":  val.Name,
-				"product price": val.Price,
+		quantity = "Product available"
+		discount := OfferDiscountCalc(int(productdetails.ID))
+		rating := RatingCalc(id, c)
+		c.JSON(200, gin.H{})
+		var reviewView []models.Review
+		if err := initializer.DB.Where("product_id=?", id).Joins("User").Find(&reviewView).Error; err != nil {
+			c.JSON(500, gin.H{
+				"status": "Fail",
+				"error":  "failed to fetch review details",
+				"code":   500,
 			})
+			return
 		}
-	}
+		var relatedProducts []models.Products
+		err := initializer.DB.Where("products.category_id =? AND products.id!=?", productdetails.CategoryId, id).Joins("Category").Find(&relatedProducts).Error
+		if err != nil {
+			c.JSON(500, gin.H{
+				"status": "Fail",
+				"error":  "Failed to find related products",
+				"code":   500,
+			})
+			return
+		}
+		c.JSON(200, gin.H{
+			"status":                 "success",
+			"data":                   productdetails,
+			"offer":                  discount,
+			"productDiscountedPrice": productdetails.Price - uint(discount),
+			"stockStatus":            quantity,
+			"rating":                 rating,
+			"review":                 reviewView,
+			"relatedProducts":        relatedProducts,
+		})
 
-	productdetails = models.Products{}
+	}
 }
 func RatingStore(c *gin.Context) {
 	var ratingValue models.Rating
@@ -90,16 +87,23 @@ func RatingStore(c *gin.Context) {
 	err := c.ShouldBindJSON(&ratingValue)
 	if err != nil {
 		c.JSON(500, gin.H{
-			"error": "failed to bind data"})
+			"status": "Fail",
+			"error":  "failed to bind data",
+			"code":   500,
+		})
 	}
 	result := initializer.DB.First(&ratingStore, "product_id=?", ratingValue.ProductId)
 	if result.Error != nil {
 		ratingValue.Users = 1
 		if err := initializer.DB.Create(&ratingValue).Error; err != nil {
 			c.JSON(500, gin.H{
-				"error": "failed to store data"})
+				"status": "Fail",
+				"error":  "failed to store data",
+				"code":   500,
+			})
 		} else {
 			c.JSON(201, gin.H{
+				"status":  "Success",
 				"message": "Thanks for rating"})
 		}
 	} else {
@@ -109,10 +113,16 @@ func RatingStore(c *gin.Context) {
 		})
 		if err.Error != nil {
 			c.JSON(500, gin.H{
-				"error": "failed to update data"})
+				"status": "Fail",
+				"error":  "failed to update data",
+				"code":   500,
+			})
 		} else {
 			c.JSON(201, gin.H{
-				"message": "Thanks for rating"})
+				"status":  "Success",
+				"message": "Thanks for rating",
+				"code":    201,
+			})
 		}
 	}
 	ratingStore = models.Rating{}
@@ -120,7 +130,11 @@ func RatingStore(c *gin.Context) {
 func RatingCalc(id string, c *gin.Context) float64 {
 	var ratingUser models.Rating
 	if err := initializer.DB.First(&ratingUser, "product_id=?", id).Error; err != nil {
-		c.JSON(500, "failed to fetch data")
+		c.JSON(500, gin.H{
+			"status": "Fail",
+			"error":  "Failed to get user info from database",
+			"code":   500,
+		})
 	} else {
 		averageratio := float64(ratingUser.Value) / float64(ratingUser.Users)
 		ratingUser = models.Rating{}
@@ -134,34 +148,23 @@ func ReviewStore(c *gin.Context) {
 	var reviewStore models.Review
 	if err := c.ShouldBindJSON(&reviewStore); err != nil {
 		c.JSON(500, gin.H{
-			"error": "failed to bind data"})
+			"status": "Fail",
+			"error":  "failed to bind data",
+			"code":   500,
+		})
 	} else {
-
 		reviewStore.Time = time.Now().Format("2006-01-02")
+		reviewStore.UserId = int(c.GetUint("userid"))
 		if err := initializer.DB.Create(&reviewStore).Error; err != nil {
 			c.JSON(500, gin.H{
-				"error": "failed to store review"})
+				"status": "Fail",
+				"error":  "failed to store review",
+				"code":   500,
+			})
 		} else {
 			c.JSON(201, gin.H{
+				"status":  "Success",
 				"message": "Thank for your feedback"})
-		}
-	}
-}
-func ReviewView(id string, c *gin.Context) {
-	var reviewView []models.Review
-	if err := initializer.DB.Joins("User").Find(&reviewView).Where("product_id=?", id).Error; err != nil {
-		c.JSON(500, gin.H{
-			"error": "failed to fetch review details"})
-	} else {
-		productId, _ := strconv.Atoi(id)
-		for _, val := range reviewView {
-			if val.ProductId == uint(productId) {
-				c.JSON(200, gin.H{
-					"review_user": val.User.Name,
-					"review_date": val.Time,
-					"review":      val.Review,
-				})
-			}
 		}
 	}
 }

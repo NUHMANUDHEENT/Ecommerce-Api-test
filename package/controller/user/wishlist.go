@@ -19,19 +19,17 @@ func WishlistProducts(c *gin.Context) {
 	}
 	if len(wishlist) == 0 {
 		c.JSON(502, gin.H{
+			"message": "Fail",
 			"message ": "No item found in wishlist",
 		})
 		return
 	}
-	for _, val := range wishlist {
 		c.JSON(502, gin.H{
-			"product id":    val.ProductId,
-			"product name":  val.Product.Name,
-			"product Image": val.Product.ImagePath1,
-			"Product Price": val.Product.Price,
+		"status":"success",
+		"data":wishlist,
 		})
 	}
-}
+
 func WishlistAdd(c *gin.Context) {
 	var wishAdd models.Wishlist
 	userId := c.GetUint("userid")
@@ -42,16 +40,21 @@ func WishlistAdd(c *gin.Context) {
 		wishAdd.ProductId, _ = strconv.Atoi(id)
 		if err := initializer.DB.Create(&wishAdd).Error; err != nil {
 			c.JSON(500, gin.H{
+				"status": "fail",
 				"error": "Failed to add to wishlist",
+				"code":  500,
 			})
 			return
 		}
 		c.JSON(500, gin.H{
+			"status": "Success",
 			"message": "Item added to wishlist",
 		})
 	} else {
 		c.JSON(500, gin.H{
+			"status": "Fail",
 			"error": "This item already added",
+			"code":   409,
 		})
 	}
 }
@@ -62,12 +65,15 @@ func WishlistDelete(c *gin.Context) {
 	userId := c.GetUint("userid")
 	id := c.Param("ID")
 	if err := initializer.DB.Where("product_id=? AND user_id=?", id, userId).Delete(&wishlistDelete).Error; err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(501, gin.H{
+			"status":"Fail",
 			"error": "failed to remove Item",
+			"code": 501,
 		})
 		return
 	}
 	c.JSON(200, gin.H{
+		"status": "success",
 		"message": "Item remove successfully",
 	})
 }
