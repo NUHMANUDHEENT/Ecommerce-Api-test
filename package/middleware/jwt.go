@@ -23,8 +23,10 @@ type Claims struct {
 func JwtTokenStart(c *gin.Context, userId uint, email string, role string) string {
 	tokenString, err := createToken(userId, email, role)
 	if err != nil {
-		c.JSON(200, gin.H{
+		c.JSON(500, gin.H{
+			"status":"Fail",
 			"Error": "Failed to create Token",
+			"code": 500,
 		})
 	}
 	return tokenString
@@ -53,8 +55,9 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 		tokenString, err := c.Cookie("jwtToken" + requiredRole)
 		if err != nil {
 			c.JSON(401, gin.H{
+				"status": "Unauthorized",
 				"message": "Can't find cookie",
-				"error":   err,
+				"code":    401,
 			})
 			c.Abort()
 			return
@@ -64,12 +67,20 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 			return []byte(os.Getenv("SECRETKEY")), nil
 		})
 		if err != nil || !token.Valid {
-			c.JSON(401, gin.H{"error": "Invalid token"})
+			c.JSON(401, gin.H{
+				"status":    "Unauthorized",
+				"message":    "Invalid or expired JWT Token.",
+				"code":      401,
+			})
 			c.Abort()
 			return
 		}
 		if claims.Role != requiredRole {
-			c.JSON(403, gin.H{"error": "Insufficient permissions"})
+			c.JSON(403, gin.H{
+				"status":   "Forbidden",
+				"error": "Insufficient permissions",
+				"code":     403,
+			})
 			c.Abort()
 			return
 		}
