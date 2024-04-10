@@ -20,9 +20,7 @@ type Products struct {
 	Color       string `json:"p_color"`
 	Quantity    uint   `json:"p_quantity"`
 	Description string `json:"p_description"`
-	ImagePath1  string
-	ImagePath2  string
-	ImagePath3  string
+	ImagePath   string
 	Status      bool `json:"p_blocking"`
 	CategoryId  int  `json:"category_id"`
 	Category    Category
@@ -49,9 +47,8 @@ type Review struct {
 	Review    string `json:"review"`
 	Time      string
 }
-
 type Coupon struct {
-	gorm.Model
+	ID              uint      `gorm:"primarykey"`
 	Code            string    `gorm:"unique" json:"code"`
 	Discount        float64   `json:"discount"`
 	CouponCondition int       `json:"condition"`

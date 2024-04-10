@@ -11,32 +11,53 @@ import (
 )
 
 var products []models.Products
-
+//	@Summary		Get a list of products
+//	@Description	Get a list of products from the database
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{string}	OK
+//	@Router			/ [get]
 func ProductsPage(c *gin.Context) {
 	products = []models.Products{}
-	err := initializer.DB.Joins("Category").Find(&products).Error
+	var productList []gin.H
+	err := initializer.DB.Order("products.name").Joins("Category").Find(&products).Error
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(400, gin.H{
 			"status": "Fail",
 			"error":  "Failed to find products",
 			"code":   500,
 		})
 		return
 	}
-
+	for _, v := range products {
+		productList = append(productList, gin.H{
+			"Id":    v.ID,
+			"name":  v.Name,
+			"price": v.Price,
+		})
+	}
 	c.JSON(200, gin.H{
 		"status": "Success",
-		"data":   products,
+		"data":   productList,
 	})
 }
-
+// @Summary product details
+// @Description Get a paginated list of products including product name, description, stock, price, brand name, and image.
+// @Tags products
+// @Produce json
+// @Param id path integer true "Product ID"
+// @Success 200 {json} SuccessResponse
+// @Failure 404 {json} JSON "Product details not found"
+// @Router /product/{id} [get]
 func ProductDetails(c *gin.Context) {
 	var productdetails models.Products
 	var quantity string
+	// var productList []gin.H
 	id := c.Param("ID")
 	if err := initializer.DB.First(&productdetails, id).Error; err != nil {
 		c.JSON(404, gin.H{
-			"status": "Find",
+			"status": "Fail",
 			"error":  "Can't see product",
 			"code":   404,
 		})
@@ -81,25 +102,34 @@ func ProductDetails(c *gin.Context) {
 
 	}
 }
+// @Summary  Rating store
+// @Description Product rating store
+// @Tags products
+// @Produce json
+// @Param id path integer true "Product ID"
+// @Success 200 {json} SuccessResponse
+// @Failure 400 {json} JSON "Failed to create rating"
+// @Router /product/rating/{id} [post]
 func RatingStore(c *gin.Context) {
 	var ratingValue models.Rating
 	var ratingStore models.Rating
+	productId := c.Param("ID")
 	err := c.ShouldBindJSON(&ratingValue)
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(400, gin.H{
 			"status": "Fail",
 			"error":  "failed to bind data",
-			"code":   500,
+			"code":   400,
 		})
 	}
-	result := initializer.DB.First(&ratingStore, "product_id=?", ratingValue.ProductId)
+	result := initializer.DB.First(&ratingStore, "product_id=?", productId)
 	if result.Error != nil {
 		ratingValue.Users = 1
 		if err := initializer.DB.Create(&ratingValue).Error; err != nil {
-			c.JSON(500, gin.H{
+			c.JSON(400, gin.H{
 				"status": "Fail",
 				"error":  "failed to store data",
-				"code":   500,
+				"code":   400,
 			})
 		} else {
 			c.JSON(201, gin.H{
@@ -107,7 +137,7 @@ func RatingStore(c *gin.Context) {
 				"message": "Thanks for rating"})
 		}
 	} else {
-		err := initializer.DB.Model(&ratingStore).Where("product_id=?", ratingValue.ProductId).Updates(models.Rating{
+		err := initializer.DB.Model(&ratingStore).Where("product_id=?",productId).Updates(models.Rating{
 			Users: ratingStore.Users + 1,
 			Value: ratingStore.Value + ratingValue.Value,
 		})

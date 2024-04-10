@@ -13,29 +13,54 @@ import (
 
 var RoleAdmin = "Admin"
 
+// @Summary Admin Dashboard
+// @Description Get admin dashboard info
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Secure ApiKeyAuth
+// @Success 200 {json} JSON "Welcome admin page"
+// Failure 404 {json} "ErrorResponse"
+// @Router /admin [get]
 func AdminPage(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status":  "success",
 		"message": "Welcome admin page",
 	})
 }
+
+type adminDetail struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// @Summary Admin Login
+// @Description Authenticate admin credentials and generate JWT token for authentication
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param Credentials body  adminDetail  true "Credentials for authentication ( username & password)"
+// @Success 202 {json} JSON "Successfully logged"
+// @Failure 401 {json} JSON "Invalid username or password"
+// @Failure 501 {json} JSON "Error binding data"
+// @Router /admin/login [post]
 func AdminLogin(c *gin.Context) {
-	var AdminCheck models.Admins
+	var AdminCheck adminDetail
 	var adminStore models.Admins
-	err := c.ShouldBindJSON(&AdminCheck)
+	err := c.Bind(&AdminCheck)
 	if err != nil {
 		c.JSON(501, gin.H{
-			"status":    "Fail",
-			"error":     "Error binding data",
-			"code": 501,
+			"status": "Fail",
+			"error":  "Error binding data",
+			"code":   501,
 		})
 		return
 	}
-	if err := initializer.DB.First(&adminStore, "email=?", AdminCheck.Email).Error; err != nil {
+	if err := initializer.DB.First(&adminStore, "email=?", AdminCheck.Username).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status":     "Fail",
 			"error":      "Invalid username or password",
-			"code":  401,
+			"code":       401,
 			"error_type": "authentication_error",
 		})
 		return
@@ -45,7 +70,7 @@ func AdminLogin(c *gin.Context) {
 		c.JSON(501, gin.H{
 			"status":     "Fail",
 			"error":      "Invalid username or password",
-			"code":  401,
+			"code":       401,
 			"error_type": "authentication_error",
 		})
 		return
@@ -58,30 +83,49 @@ func AdminLogin(c *gin.Context) {
 	})
 }
 
+// @Summary Admin Logout
+// @Description Admin logout and clear cookie
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Success 200 {json} JSON "Logout successful"
+// Failure 404 {json} JSON  "ErrorResponse"
+// @Router /admin/logout [get]
 func AdminLogout(c *gin.Context) {
-	c.SetCookie("jwt_tokenAdmin", "", -1, "", "", false, false)
+	c.SetCookie("jwtTokenAdmin", "", -1, "", "", false, false)
 	c.JSON(201, gin.H{
 		"status":  "success",
 		"message": "Logout Successfull",
 	})
 }
+
+// @Summary Admin SignUp
+// @Description Authenticated admin can create new user account
+// @Tags Signup
+// @Accept json
+// @Produce json
+// @Secure ApiKeyAuth
+// @Param data body adminDetail true "Create Admin"
+// @Success 200 {json} JSON "New admin created"
+// Failure 404 {json} JSON  "ErrorResponse"
+// @Router /admin/signup [post]
 func AdminSignUp(c *gin.Context) {
 	var adminSignUp models.Admins
 	err := c.ShouldBindJSON(&adminSignUp)
 	if err != nil {
 		c.JSON(406, gin.H{
-			"status":    "Fail",
-			"error":     "Json binding error",
-			"code": 406,
+			"status": "Fail",
+			"error":  "Json binding error",
+			"code":   406,
 		})
 		return
 	}
 	HashPass, err := bcrypt.GenerateFromPassword([]byte(adminSignUp.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(501, gin.H{
-			"status":    "Fail",
-			"error":     "Hashing error",
-			"code": 501,
+			"status": "Fail",
+			"error":  "Hashing error",
+			"code":   501,
 		})
 		return
 	}
@@ -89,9 +133,9 @@ func AdminSignUp(c *gin.Context) {
 	erro := initializer.DB.Create(&adminSignUp)
 	if erro.Error != nil {
 		c.JSON(500, gin.H{
-			"status":    "Fail",
-			"message":   "Failed to signup",
-			"code": 500,
+			"status":  "Fail",
+			"message": "Failed to signup",
+			"code":    500,
 		})
 		return
 	}
@@ -101,14 +145,15 @@ func AdminSignUp(c *gin.Context) {
 	})
 }
 
-// @Summary Get a list of users
-// @Description Get a list of users from the database
-// @Tags admin
-// @Accept json
-// @Produce json
-// @Success 200 {array} "OK"
-// @Failure 400 {json} ErrorResponse
-// @Router /admin/user [get]
+// @Summary		list of users
+// @Description get list of all registered admins
+// @Tags	    Admin/Users
+// @Accept	    json
+// @Produce		json
+// @Secure      ApiKeyAuth  
+// @Success 200 {array} UpdateUserData "List of users"
+// @Failure 500 {json} ErrorResponse "Failed to fetch user data"
+// @Router	    /admin/user [get]
 func UserList(c *gin.Context) {
 	var userManagment []models.Users
 	err := initializer.DB.Order("ID").Find(&userManagment)
@@ -125,8 +170,27 @@ func UserList(c *gin.Context) {
 		"data":   userManagment,
 	})
 }
+type  UpdateUserData struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Gender string  `json:"gender"`
+}
+
+// @Summary Edit user details
+// @Description Edit user details based on user ID
+// @Tags Admin/Users
+// @Accept json
+// @Produce json
+// @Secure ApiKeyAuth
+// @Param data body UpdateUserData true "Update user info"
+// @Success 200 {json} JSON "User updated successfully"
+// @Failure 404 {json} JSON "User not found"
+// @Failure 406 {json} JSON "Failed to bind data"
+// @Failure 500 {json} JSON "Failed to update details"
+// @Router /admin/user/{id} [patch]
 func EditUserDetails(c *gin.Context) {
 	var userEdit models.Users
+	var  updateInfo UpdateUserData
 	id := c.Param("ID")
 	err := initializer.DB.First(&userEdit, id)
 	if err.Error != nil {
@@ -136,13 +200,18 @@ func EditUserDetails(c *gin.Context) {
 			"code":   404,
 		})
 	} else {
-		err := c.ShouldBindJSON(&userEdit)
+		err := c.Bind(&updateInfo)
 		if err != nil {
 			c.JSON(406, gin.H{
 				"status": "Fail",
 				"error":  "Failed to bind data",
 				"code":   406,
 			})
+			userEdit = models.Users{
+				Name: updateInfo.Name,
+				Gender: updateInfo.Gender,
+				Phone: userEdit.Phone,
+			}
 		} else {
 			if err := initializer.DB.Save(&userEdit).Error; err != nil {
 				c.JSON(500, gin.H{
@@ -160,6 +229,17 @@ func EditUserDetails(c *gin.Context) {
 		}
 	}
 }
+// @Summary Block user
+// @Description Update User Bloking status as Blocked or Unblocked
+// @Tags Admin/Users
+// @Accept json
+// @Produce json
+// @Secure ApiKeyAuth
+// @Param id path integer true "User ID"
+// @Success 200 {json} JSON "User blocked or unblocked successfully"
+// @Failure 404 {json} JSON "User not found"
+// @Failure 500 {json} JSON "Server error while trying to change blocking status"
+// @Router /admin/userblock/{id} [patch]
 func BlockUser(c *gin.Context) {
 	var blockUser models.Users
 	id := c.Param("ID")
@@ -199,6 +279,18 @@ func BlockUser(c *gin.Context) {
 		})
 	}
 }
+
+// @Summary Delete user
+// @Description Delete an existing user from admin side
+// @Tags Admin/Users
+// @Accept json
+// @Produce json
+// @Secure ApiKeyAuth
+// @Param id path integer true "User ID"
+// @Success 200 {json} JSON "User deleted successfully"
+// @Failure 404 {json} JSON "User not found"
+// @Failure 500 {json} JSON "Failed to delete user"
+// @Router /admin/user/{id} [delete]
 func DeleteUser(c *gin.Context) {
 	var deleteUser models.Users
 	id := c.Param("ID")

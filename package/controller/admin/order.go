@@ -7,9 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AdminOrdersView returns a JSON response with a list of order items for admin view.
+// @Summary View admin orders
+// @Description Retrieves a list of order items for admin view.
+// @Tags Admin/Orders
+// @Accept json
+// @Produce json
+// @Secure ApiKeyAuth
+// @Success 200 {json} JSON Response "A successful response."
+// @Failure 404 {json} JSON  ErrorResponse "An error occurred while processing your request."
+// @Router /admin/orders [get]
 func AdminOrdersView(c *gin.Context) {
-	var ordersitems []models.OrderItems
-	if err := initializer.DB.Preload("Order").Find(&ordersitems).Error; err != nil {
+	var orderitems []models.OrderItems
+	var orderShow []gin.H
+	if err := initializer.DB.Preload("Order").Find(&orderitems).Error; err != nil {
 		c.JSON(404, gin.H{
 			"status": "Fail",
 			"error":  "can't find orders",
@@ -17,11 +28,33 @@ func AdminOrdersView(c *gin.Context) {
 		})
 		return
 	}
+	for _, v := range orderitems {
+		orderShow = append(orderShow, gin.H{
+			"id":          v.Id,
+			"orderId":     v.OrderId,
+			"productName": v.ProductId,
+			"quantity":    v.Quantity,
+			"price":       v.SubTotal,
+			"status":      v.OrderStatus,
+		})
+	}
 	c.JSON(200, gin.H{
-		"status": "Success",
-		"orders": ordersitems,
+		"status":     "Success",
+		"orderItems": orderShow,
 	})
 }
+
+// Admin can cancel any order using  this endpoint.
+// @Summary Cancel an order
+// @Description Allows the admin to cancel an existing order.
+// @Tags Admin/Orders
+// @Accept json
+// @Produce json
+// @Param id path int true "The ID of the order that you want to cancel"
+// @Secure ApiKeyAuth
+// @Success 200 {json} JSON Response "The order has been successfully canceled"
+// @Failure 400 {json} JSON  ErrorResponse "An error occurred while cancel the order."
+// @Router /admin/ordercancel [patch]
 func AdminCancelOrder(c *gin.Context) {
 	id := c.Param("ID")
 	var orderItem models.OrderItems
@@ -99,6 +132,18 @@ func AdminCancelOrder(c *gin.Context) {
 	})
 }
 
+// Admin can change order status using  this endpoint.
+// @Summary Status update of an order
+// @Description Allows the admin to update status of an existing order.
+// @Tags Admin/Orders
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path int true "The ID of the order that you want to upfate status"
+// @Param status formData string true " New status for the order"
+// @Secure ApiKeyAuth
+// @Success 200 {json} JSON Response "The order status has been changed successfully "
+// @Failure 400 {json} JSON  ErrorResponse "An error occurred while updating status of the order."
+// @Router /admin/orderstatus [patch]
 func AdminOrderStatus(c *gin.Context) {
 	id := c.Param("ID")
 	var orderStatus models.OrderItems

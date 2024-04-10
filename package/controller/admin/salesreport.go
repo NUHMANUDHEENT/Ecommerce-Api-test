@@ -10,7 +10,14 @@ import (
 	"github.com/jung-kurt/gofpdf"
 	"github.com/tealeg/xlsx"
 )
-
+// SalesReport generates a sales report including total sales amount, total sales count, and total order cancellations.
+// @Summary Generate sales report
+// @Description Generates a sales report including total sales amount, total sales count, and total order cancellations.
+// @Tags Admin/Sales
+// @Produce json
+// @Secure ApiKeyAuth
+// @Success 200 {json} JSON Response "OK"
+// @Router /admin/sales/report [get]
 func SalesReport(c *gin.Context) {
 	var sales []models.Order
 	var totalamount float64
@@ -35,10 +42,19 @@ func SalesReport(c *gin.Context) {
 		"TotalOrderCancel": cancelCount,
 	})
 }
+
+// SalesReportExcel generates a sales report in Excel format and sends it as a downloadable file.
+// @Summary Generate sales report in Excel
+// @Description Generates a sales report in Excel format and sends it as a downloadable file.
+// @Tags Admin/Sales
+// @Produce json
+// @Success 201 {json} JSON Response "Created"
+// @Failure 400 {json} JSON ErrorResponse " Internal Server Error"
+// @Router /admin/sales/report/excel [get]
 func SalesReportExcel(c *gin.Context) {
 	var OrderData []models.OrderItems
-	if err := initializer.DB.Order("").Preload("Product").Preload("Order.User").Find(&OrderData).Error; err != nil {
-		c.JSON(500, gin.H{
+	if err := initializer.DB.Order("").Preload("Product").Preload("Order").Find(&OrderData).Error; err != nil {
+		c.JSON(400, gin.H{
 			"status":"Fail",
 			"error": "Failed to fetch sales data",
 			"code":500,
@@ -49,15 +65,15 @@ func SalesReportExcel(c *gin.Context) {
 	file := xlsx.NewFile()
 	sheet, err := file.AddSheet("Sales Report")
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(400, gin.H{
 			"status":"Fail",
 			"error": "Failed to create Excel sheet",
-			"code":500,
+			"code":400,
 		})
 		return
 	}
 
-	headers := []string{"Order ID", "Customer Name", "Product Name", "Order Date", "Total Amount"}
+	headers := []string{"Order ID",	"Product Name", "Order Date", "Total Amount"}
 	row := sheet.AddRow()
 	for _, header := range headers {
 		cell := row.AddCell()
@@ -69,14 +85,12 @@ func SalesReportExcel(c *gin.Context) {
 	for _, sale := range OrderData {
 		row := sheet.AddRow()
 		row.AddCell().Value = strconv.Itoa(int(sale.OrderId))
-		row.AddCell().Value = sale.Order.User.Name
 		row.AddCell().Value = sale.Product.Name
 		row.AddCell().Value = sale.Order.OrderDate.Format("2006-01-02") 
 		row.AddCell().Value = fmt.Sprintf("%d", sale.SubTotal)          
 		totalAmount += float32(sale.SubTotal)
 	}
 	totalRow := sheet.AddRow()
-	totalRow.AddCell()
 	totalRow.AddCell()
 	totalRow.AddCell()
 	totalRow.AddCell().Value = "Total Amount:"
@@ -103,9 +117,17 @@ func SalesReportExcel(c *gin.Context) {
 
 }
 
+// SalesReportPdf generates a sales report in PDF format and sends it as a downloadable file.
+// @Summary Generate sales report in Excel
+// @Description Generates a sales report in Excel format and sends it as a downloadable file.
+// @Tags Admin/Sales
+// @Produce json
+// @Success 201 {json} JSON Response "Created"
+// @Failure 400 {json} JSON ErrorResponse "Internal Server Error"
+// @Router /admin/sales/report/pdf [get]
 func SalesReportPDF(c *gin.Context) {
 	var OrderData []models.OrderItems
-	if err := initializer.DB.Preload("Product").Preload("Order.User").Find(&OrderData).Error; err != nil {
+	if err := initializer.DB.Preload("Product").Preload("Order").Find(&OrderData).Error; err != nil {
 		c.JSON(500, gin.H{
 			"status":"Fail",
 			"error": "Failed to fetch sales data",
@@ -113,25 +135,23 @@ func SalesReportPDF(c *gin.Context) {
 		})
 		return
 	}
-
 	// ======= create new pdf doc =========
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 	pdf.SetFont("Arial", "", 12)
 
-	headers := []string{"Order ID", "Customer", "Product", "Order Date", "Total Amount"}
+	headers := []string{"Order ID", "Product", "Order Date", "Total Amount"}
 	for _, header := range headers {
-		pdf.Cell(40, 10, header)
+		pdf.Cell(50, 10, header)
 	}
 	pdf.Ln(-1)
 
 	// ========== add sales data ===========
 	for _, sale := range OrderData {
-		pdf.Cell(40, 10, strconv.Itoa(int(sale.OrderId)))
-		pdf.Cell(40, 10, sale.Order.User.Name)
-		pdf.Cell(40, 10, sale.Product.Name)
-		pdf.Cell(40, 10, sale.Order.OrderDate.Format("2006-01-02"))
-		pdf.Cell(40, 10, fmt.Sprintf("%d", sale.SubTotal))
+		pdf.Cell(50, 10, strconv.Itoa(int(sale.OrderId)))
+		pdf.Cell(50, 10, sale.Product.Name)
+		pdf.Cell(50, 10, sale.Order.OrderDate.Format("2006-01-02"))
+		pdf.Cell(50, 10, fmt.Sprintf("%d", sale.SubTotal))
 		pdf.Ln(-1)
 	}
 

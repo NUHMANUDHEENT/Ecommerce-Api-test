@@ -11,7 +11,7 @@ var roleAdmin = "Admin"
 
 func AdminGroup(r *gin.RouterGroup) {
 	//================ admin authentication=======================
-	r.GET("/login", controller.AdminLogin)
+	r.POST("/login", controller.AdminLogin)
 	r.GET("/logout", controller.AdminLogout)
 	r.POST("/signup", middleware.AuthMiddleware(roleAdmin), controller.AdminSignUp)
 	r.GET("/", middleware.AuthMiddleware(roleAdmin), controller.AdminPage)
@@ -34,12 +34,11 @@ func AdminGroup(r *gin.RouterGroup) {
 	r.POST("/categories", middleware.AuthMiddleware(roleAdmin), controller.AddCategory)
 	r.PATCH("/categories/:ID", middleware.AuthMiddleware(roleAdmin), controller.EditCategories)
 	r.DELETE("/categories/:ID", middleware.AuthMiddleware(roleAdmin), controller.DeleteCategories)
-	r.PATCH("/categories/block/:ID", middleware.
-		AuthMiddleware(roleAdmin), controller.BlockCategory)
+	r.PATCH("/categories/block/:ID", middleware.AuthMiddleware(roleAdmin), controller.BlockCategory)
 
 	//===================== Coupon managment ====================
 	r.GET("/coupon", middleware.AuthMiddleware(roleAdmin), controller.CouponView)
-	r.POST("/coupon", middleware.AuthMiddleware(roleAdmin), controller.CouponStore)
+	r.POST("/coupon", middleware.AuthMiddleware(roleAdmin), controller.CouponCreate)
 	r.DELETE("/coupon/:ID", middleware.AuthMiddleware(roleAdmin), controller.CouponDelete)
 
 	// =================== order managment ==============
@@ -48,14 +47,14 @@ func AdminGroup(r *gin.RouterGroup) {
 	r.PATCH("/ordercancel/:ID", middleware.AuthMiddleware(roleAdmin), controller.AdminCancelOrder)
 
 	// =================== offers management =====================
-	r.GET("/offers", middleware.AuthMiddleware(roleAdmin), controller.OfferList)
-	r.POST("/offers", middleware.AuthMiddleware(roleAdmin), controller.OfferAdd)
-	r.DELETE("/offers", middleware.AuthMiddleware(roleAdmin), controller.OfferDelete)
+	r.GET("/offer", middleware.AuthMiddleware(roleAdmin), controller.OfferList)
+	r.POST("/offer", middleware.AuthMiddleware(roleAdmin), controller.OfferAdd)
+	r.DELETE("/offer/:ID", middleware.AuthMiddleware(roleAdmin), controller.OfferDelete)
 
 	// ===================== sales report =========================
-	r.GET("/sales", middleware.AuthMiddleware(roleAdmin), controller.SalesReport)
-	r.GET("/salesexel", middleware.AuthMiddleware(roleAdmin), controller.SalesReportExcel)
-	r.GET("/salespdf", middleware.AuthMiddleware(roleAdmin), controller.SalesReportPDF)
+	r.GET("/sales/report", middleware.AuthMiddleware(roleAdmin), controller.SalesReport)
+	r.GET("/sales/report/excel", middleware.AuthMiddleware(roleAdmin), controller.SalesReportExcel)
+	r.GET("/sales/report/pdf", middleware.AuthMiddleware(roleAdmin), controller.SalesReportPDF)
 
-	r.GET("/bestproduct", controller.BestProducts)
+	r.GET("/bestselling", controller.BestSelling)
 }

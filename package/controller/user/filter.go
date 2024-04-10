@@ -7,9 +7,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-//============== search anda filter ==================
+
+// SearchProduct handles the product search request.
+// @Summary Search products
+// @Description Searches products based on the provided search query and optional sorting criteria.
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param search query string false "Search query for products"
+// @Param sort query string false "Sorting criteria: a_to_z, z_to_a, price_low_to_high, price_high_to_low, new_arrivals, popularity"
+// @Success 200 {json} SuccessResponse
+// @Failure 400 {json} ErrorResponse
+// @Router /filter [GET]
 func SearchProduct(c *gin.Context) {
-	searchQuery := c.Query("query")
+	var itemsShow []gin.H
+	searchQuery := c.Query("search")
 	sortBy := strings.ToLower(c.DefaultQuery("sort", "a_to_z"))
 
 	// ======== search based query ============
@@ -17,7 +29,7 @@ func SearchProduct(c *gin.Context) {
 	if searchQuery != "" {
 		query = query.Where("name ILIKE ?", "%"+searchQuery+"%")
 	}
- // ======== filter products given query =========
+	// ======== filter products given query =========
 	switch sortBy {
 	case "price_low_to_high":
 		query = query.Order("price asc")
@@ -51,10 +63,10 @@ func SearchProduct(c *gin.Context) {
 		initializer.DB.Raw(query).Scan(&products)
 
 		for _, v := range products {
-			c.JSON(200, gin.H{
-				"Name":  v.Name,
-				"Price": v.Price,
-				"ID":    v.ID,
+			itemsShow = append(itemsShow, gin.H{
+				"name":  v.Name,
+				"price": v.Price,
+				"size":  v.Size,
 			})
 		}
 		return
@@ -63,8 +75,15 @@ func SearchProduct(c *gin.Context) {
 	}
 	var items []models.Products
 	query.Joins("Category").Find(&items)
-		c.JSON(200, gin.H{
-			"status": "success",
-			"data":  items,
+	for _, v := range items {
+		itemsShow = append(itemsShow, gin.H{
+			"name":  v.Name,
+			"price": v.Price,
+			"size":  v.Size,
 		})
 	}
+	c.JSON(200, gin.H{
+		"status": "success",
+		"data":   itemsShow,
+	})
+}

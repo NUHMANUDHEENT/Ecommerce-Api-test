@@ -7,9 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func BestProducts(c *gin.Context) {
+// @Summary Best selling products
+// @Description Fetch  the best selling products from database
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Secure ApiKeyAuth
+// @Param type query string true "Type of search: 'product' or 'category'"
+// @Success 200 {json} JSON "User was deleted"
+// Failure 404 {json} JSON  "ErrorResponse"
+// @Router /admin/bestselling [get]
+func BestSelling(c *gin.Context) {
 	var BestProduct []models.Products
-	query := c.Query("query")
+	var BestList []gin.H
+	query := c.Query("type")
 	switch query {
 	case "product":
 		if err := initializer.DB.Table("order_items oi").Select("p.name, p.price , COUNT(oi.quantity) quantity").
@@ -25,7 +36,14 @@ func BestProducts(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(200, BestProduct)
+		for _, v := range BestProduct {
+			BestList = append(BestList, gin.H{
+				"productName":  v.Name,
+				"salesVolume":  v.Quantity,
+				"averagePrice": float64(v.Price) / float64(v.Quantity),
+			})
+		}
+
 	case "category":
 		var BestCategory []models.Category
 		if err := initializer.DB.Table("order_items oi").
@@ -42,7 +60,14 @@ func BestProducts(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(200, BestCategory)
+		for _, v := range BestCategory {
+			BestList = append(BestList, gin.H{
+				"categoryName": v.Category_name,
+			})
+		}
 	}
-
+	c.JSON(200, gin.H{
+		"data":   BestList,
+		"status": "Success",
+	})
 }

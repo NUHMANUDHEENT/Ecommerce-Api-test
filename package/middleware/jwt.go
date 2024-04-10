@@ -11,7 +11,6 @@ import (
 
 var BlacklistedTokens = make(map[string]bool)
 
-// var UserData models.Users
 
 type Claims struct {
 	Email  string `json:"username"`

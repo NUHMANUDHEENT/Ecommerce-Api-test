@@ -9,7 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jung-kurt/gofpdf"
 )
-
+// Delivered order invoice download as pdf format for user
+// @Summery Invoice download pdf
+// @Description Download invoice as pdf format for the ordered user
+// @Tags Order
+// @Accept json
+// @Secure ApiKeyAuth
+// @Param id path int true "Delivered order id"
+// @Success 200 {json} SuccessResponse
+// Failure 400 {json} ErrorResponse
+// Router /order/invoice/{id} [get]
 func CreateInvoice(c *gin.Context) {
 	userID := c.GetUint("userid")
 	orderId := c.Param("ID")

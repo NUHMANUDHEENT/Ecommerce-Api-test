@@ -12,8 +12,9 @@ import (
 var AddProduct models.Products
 
 func ProductList(c *gin.Context) {
-	var productList []models.Products
-	err := initializer.DB.Joins("Category").Find(&productList).Error
+	var product []models.Products
+	var productList []gin.H
+	err := initializer.DB.Joins("Category").Find(&product).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"status":  "Fail",
@@ -22,12 +23,18 @@ func ProductList(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(200, gin.H{
-		"status": "Success",
-		"data":   productList,
-	})
+	for _, v := range product {
+		productList = append(productList, gin.H{
+			"Id":    v.ID,
+			"name":  v.Name,
+			"price": v.Price,
+		})
+		c.JSON(200, gin.H{
+			"status": "Success",
+			"data":   productList,
+		})
+	}
 }
-
 func UploadImage(c *gin.Context) {
 	file, err := c.MultipartForm()
 	if err != nil {
@@ -51,9 +58,9 @@ func UploadImage(c *gin.Context) {
 		}
 		imagePaths = append(imagePaths, filePath)
 	}
-	AddProduct.ImagePath1 = imagePaths[0]
-	AddProduct.ImagePath2 = imagePaths[1]
-	AddProduct.ImagePath3 = imagePaths[2]
+	AddProduct.ImagePath = imagePaths[0]
+	// AddProduct.ImagePath2 = imagePaths[1]
+	// AddProduct.ImagePath3 = imagePaths[2]
 	if result := initializer.DB.Create(&AddProduct); result.Error != nil {
 		c.JSON(500, gin.H{
 			"status": "Fail",
@@ -68,7 +75,6 @@ func UploadImage(c *gin.Context) {
 		})
 	}
 }
-
 func AddProducts(c *gin.Context) {
 	AddProduct = models.Products{}
 	var checkCategory models.Category
@@ -88,11 +94,10 @@ func AddProducts(c *gin.Context) {
 	} else {
 		AddProduct.Status = true
 		c.JSON(http.StatusOK, gin.H{
-			"status":"Continue",
+			"status":  "Continue",
 			"message": "upload the images"})
 	}
 }
-
 func EditProducts(c *gin.Context) {
 	var editProducts models.Products
 	id := c.Param("ID")
@@ -120,9 +125,9 @@ func EditProducts(c *gin.Context) {
 				})
 			}
 			c.JSON(200, gin.H{
-				"status":"Success",
+				"status":  "Success",
 				"message": "successfully edited product",
-				"data": editProducts,
+				"data":    editProducts,
 			})
 		}
 	}
@@ -147,7 +152,7 @@ func DeleteProducts(c *gin.Context) {
 			})
 		} else {
 			c.JSON(200, gin.H{
-				"status":"Success",
+				"status":  "Success",
 				"message": "product deleted successfully"})
 		}
 	}

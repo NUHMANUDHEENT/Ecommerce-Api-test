@@ -1,25 +1,1498 @@
+basePath: /
+definitions:
+  controller.CategoryForm:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  controller.UpdateUserData:
+    properties:
+      email:
+        type: string
+      gender:
+        type: string
+      name:
+        type: string
+    type: object
+  controller.addressUpdate:
+    properties:
+      user_address:
+        type: string
+      user_city:
+        type: string
+      user_country:
+        type: string
+      user_phone:
+        type: integer
+      user_pincode:
+        type: integer
+      user_state:
+        type: string
+    type: object
+  controller.adminDetail:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  controller.userDetailLogin:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  controller.userDetailSignUp:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: integer
+    type: object
+  controller.userDetailUpdate:
+    properties:
+      email:
+        type: string
+      gender:
+        type: string
+      name:
+        type: string
+      phone:
+        type: integer
+    type: object
+  models.Coupon:
+    properties:
+      code:
+        type: string
+      condition:
+        type: integer
+      discount:
+        type: number
+      id:
+        type: integer
+      valid_from:
+        type: string
+      valid_to:
+        type: string
+    type: object
+  models.Offer:
+    properties:
+      discount:
+        type: number
+      id:
+        type: integer
+      offer:
+        type: string
+      productid:
+        type: integer
+      valid_from:
+        type: string
+      valid_to:
+        type: string
+    type: object
+host: localhost:8080
 info:
   contact: {}
+  description: Ecommerce API in go using Gin frame work
+  title: E Commerce API
+  version: "1.0"
 paths:
-  /admin/user:
+  /:
     get:
       consumes:
       - application/json
-      description: Get a list of users from the database
+      description: Get a list of products from the database
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
+            type: string
+      summary: Get a list of products
+      tags:
+      - users
+  /admin:
+    get:
+      consumes:
+      - application/json
+      description: Get admin dashboard info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Welcome admin page
+          schema:
+            type: json
+      summary: Admin Dashboard
+      tags:
+      - admin
+  /admin/bestselling:
+    get:
+      consumes:
+      - application/json
+      description: Fetch  the best selling products from database
+      parameters:
+      - description: 'Type of search: ''product'' or ''category'''
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User was deleted
+          schema:
+            type: json
+      summary: Best selling products
+      tags:
+      - admin
+  /admin/categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of categories from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of categories
+          schema:
+            type: json
+        "400":
+          description: Failed to fetch category list
+          schema:
+            type: json
+      summary: List categories
+      tags:
+      - admin/categories
+    post:
+      consumes:
+      - application/json
+      description: Add a new category to the database
+      parameters:
+      - description: Category data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.CategoryForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New category created successfully
+          schema:
+            type: json
+        "406":
+          description: Failed to bind data
+          schema:
+            type: json
+        "500":
+          description: Failed to insert category
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Add a new category
+      tags:
+      - admin/categories
+  /admin/categories/{ID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete  a specific category by its ID
+      parameters:
+      - description: The Category ID you want to delete
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category deleted successfully
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a specific category
+      tags:
+      - admin/categories
+    patch:
+      consumes:
+      - application/json
+      description: Edit an existing category in the database
+      parameters:
+      - description: Category ID
+        in: path
+        name: ID
+        required: true
+        type: integer
+      - description: Category data for editing
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.CategoryForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully edited category
+          schema:
+            type: json
+        "400":
+          description: Invalid request format
+          schema:
+            type: json
+        "404":
+          description: Category not found
+          schema:
+            type: json
+        "500":
+          description: Failed to edit category
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Edit a category
+      tags:
+      - admin/categories
+  /admin/categories/block/{ID}:
+    patch:
+      consumes:
+      - application/json
+      description: Block the access of products in this category
+      parameters:
+      - description: The Category ID that will be blocked
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category deleted successfully
+          schema:
+            type: json
+        "401":
+          description: Unauthorized
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Blocking a category
+      tags:
+      - admin/categories
+  /admin/coupon:
+    get:
+      consumes:
+      - application/json
+      description: Get details of all coupons
+      operationId: get_all_products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Products fetched successfully.
+          schema:
+            type: json
+        "500":
+          description: Server error
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Get coupon details
+      tags:
+      - /admin/coupon
+    post:
+      consumes:
+      - application/json
+      description: Admin can Create a new coupon with condition and validity
+      parameters:
+      - description: Coupon data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Coupon'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product created successfully
+          schema:
+            type: json
+        "406":
+          description: Failed to bind data
+          schema:
+            type: json
+        "500":
+          description: Failed to insert Coupon
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: New coupon create
+      tags:
+      - /admin/coupon
+  /admin/coupon/{ID}:
+    delete:
+      description: Delete a coupon by its unique identifier
+      operationId: deleteCouponByID
+      parameters:
+      - description: Coupon ID
+        in: path
+        name: ID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Coupon deleted successfully
+          schema:
+            type: json
+        "500":
+          description: Failed to delete coupon
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a coupon by ID
+      tags:
+      - /admin/coupon
+  /admin/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate admin credentials and generate JWT token for authentication
+      parameters:
+      - description: Credentials for authentication ( username & password)
+        in: body
+        name: Credentials
+        required: true
+        schema:
+          $ref: '#/definitions/controller.adminDetail'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Successfully logged
+          schema:
+            type: json
+        "401":
+          description: Invalid username or password
+          schema:
+            type: json
+        "501":
+          description: Error binding data
+          schema:
+            type: json
+      summary: Admin Login
+      tags:
+      - Authentication
+  /admin/logout:
+    get:
+      consumes:
+      - application/json
+      description: Admin logout and clear cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            type: json
+      summary: Admin Logout
+      tags:
+      - Authentication
+  /admin/offer:
+    get:
+      description: Retrieve a list of all available offers
+      operationId: getOfferList
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Get a list of offers
+      tags:
+      - Admin/Offer
+    post:
+      consumes:
+      - application/json
+      description: Add a new offer to the system
+      operationId: addOffer
+      parameters:
+      - description: Offer details
+        in: body
+        name: offer
+        required: true
+        schema:
+          $ref: '#/definitions/models.Offer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New Offer Created
+          schema:
+            type: json
+        "400":
+          description: Failed to create offer
+          schema:
+            type: json
+      summary: Add a new offer
+      tags:
+      - Admin/Offer
+  /admin/offer/{ID}:
+    delete:
+      description: Delete an offer from the system by its unique identifier
+      operationId: deleteOffer
+      parameters:
+      - description: Offer ID
+        in: path
+        name: ID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deleted Successfully
+          schema:
+            type: json
+        "400":
+          description: Failed to delete offer
+          schema:
+            type: json
+      summary: Delete an offer by ID
+      tags:
+      - Admin/Offer
+  /admin/ordercancel:
+    patch:
+      consumes:
+      - application/json
+      description: Allows the admin to cancel an existing order.
+      parameters:
+      - description: The ID of the order that you want to cancel
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The order has been successfully canceled
+          schema:
+            type: json
+        "400":
+          description: An error occurred while cancel the order.
+          schema:
+            type: json
+      summary: Cancel an order
+      tags:
+      - Admin/Orders
+  /admin/orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of order items for admin view.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: json
+        "404":
+          description: An error occurred while processing your request.
+          schema:
+            type: json
+      summary: View admin orders
+      tags:
+      - Admin/Orders
+  /admin/orderstatus:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Allows the admin to update status of an existing order.
+      parameters:
+      - description: The ID of the order that you want to upfate status
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: ' New status for the order'
+        in: formData
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'The order status has been changed successfully '
+          schema:
+            type: json
+        "400":
+          description: An error occurred while updating status of the order.
+          schema:
+            type: json
+      summary: Status update of an order
+      tags:
+      - Admin/Orders
+  /admin/sales/report:
+    get:
+      description: Generates a sales report including total sales amount, total sales
+        count, and total order cancellations.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+      summary: Generate sales report
+      tags:
+      - Admin/Sales
+  /admin/sales/report/excel:
+    get:
+      description: Generates a sales report in Excel format and sends it as a downloadable
+        file.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: json
+        "400":
+          description: ' Internal Server Error'
+          schema:
+            type: json
+      summary: Generate sales report in Excel
+      tags:
+      - Admin/Sales
+  /admin/sales/report/pdf:
+    get:
+      description: Generates a sales report in Excel format and sends it as a downloadable
+        file.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: json
+        "400":
+          description: Internal Server Error
+          schema:
+            type: json
+      summary: Generate sales report in Excel
+      tags:
+      - Admin/Sales
+  /admin/signup:
+    post:
+      consumes:
+      - application/json
+      description: Authenticated admin can create new user account
+      parameters:
+      - description: Create Admin
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controller.adminDetail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New admin created
+          schema:
+            type: json
+      summary: Admin SignUp
+      tags:
+      - Signup
+  /admin/user:
+    get:
+      consumes:
+      - application/json
+      description: get list of all registered admins
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
             items:
-              type: string
+              $ref: '#/definitions/controller.UpdateUserData'
             type: array
+        "500":
+          description: Failed to fetch user data
+          schema:
+            type: json
+      summary: list of users
+      tags:
+      - Admin/Users
+  /admin/user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing user from admin side
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted successfully
+          schema:
+            type: json
+        "404":
+          description: User not found
+          schema:
+            type: json
+        "500":
+          description: Failed to delete user
+          schema:
+            type: json
+      summary: Delete user
+      tags:
+      - Admin/Users
+    patch:
+      consumes:
+      - application/json
+      description: Edit user details based on user ID
+      parameters:
+      - description: Update user info
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controller.UpdateUserData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            type: json
+        "404":
+          description: User not found
+          schema:
+            type: json
+        "406":
+          description: Failed to bind data
+          schema:
+            type: json
+        "500":
+          description: Failed to update details
+          schema:
+            type: json
+      summary: Edit user details
+      tags:
+      - Admin/Users
+  /admin/userblock/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update User Bloking status as Blocked or Unblocked
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User blocked or unblocked successfully
+          schema:
+            type: json
+        "404":
+          description: User not found
+          schema:
+            type: json
+        "500":
+          description: Server error while trying to change blocking status
+          schema:
+            type: json
+      summary: Block user
+      tags:
+      - Admin/Users
+  /cart:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves and displays the items in the user's cart along with
+        total amount and discounts.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            type: json
+        "400":
+          description: Invalid input request
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: View cart items
+      tags:
+      - Cart
+  /cart/{ID}:
+    post:
+      consumes:
+      - application/json
+      description: Adds a product to the user's cart if it's not already added.
+      parameters:
+      - description: Product ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item  was successfully added.
+          schema:
+            type: json
+        "400":
+          description: Invalid input data.
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Add product to cart
+      tags:
+      - Cart
+  /cart/{ID}/add:
+    patch:
+      consumes:
+      - application/json
+      description: Increases the quantity of a product in the user's cart if it's
+        available and within the quantity limit.
+      parameters:
+      - description: Product ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: one more quantity added
+          schema:
+            type: string
+        "201":
+          description: can't add more quantity
+          schema:
+            type: string
+        "202":
+          description: product out of stock
+          schema:
+            type: string
+        "400":
+          description: failed to add to one more
+          schema:
+            type: string
+        "404":
+          description: failed to fetch product stock details/can't find product
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Increase quantity of product in cart
+      tags:
+      - Cart
+  /cart/{ID}/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Removes a product from the user's cart.
+      parameters:
+      - description: Product ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item has been deleted.
+          schema:
+            type: string
+        "400":
+          description: Failed to delete item.
+          schema:
+            type: string
+        "404":
+          description: Can't find this item in your cart.
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Remove product from cart
+      tags:
+      - Cart
+  /cart/{ID}/remove:
+    patch:
+      consumes:
+      - application/json
+      description: Decreases the quantity of a product in the user's cart if it's
+        available.
+      parameters:
+      - description: Product ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: one more quantity removed
+          schema:
+            type: string
+        "202":
+          description: can't remove one more
+          schema:
+            type: string
+        "400":
+          description: failed to update
+          schema:
+            type: string
+        "404":
+          description: can't find product
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Decrease quantity of product in cart
+      tags:
+      - Cart
+  /checkout:
+    post:
+      consumes:
+      - multipart/form-data
+      description: place an order by given cart items, calculate total price of all
+        products in the shopping cart, generate a unique OrderID,place the order with
+        give payment method
+      parameters:
+      - description: Payment Method
+        in: formData
+        name: payment
+        required: true
+        type: string
+      - description: Address ID
+        in: formData
+        name: address
+        required: true
+        type: string
+      - description: Coupon Code
+        in: formData
+        name: coupon
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
         "400":
           description: Bad Request
           schema:
             type: json
-      summary: Get a list of users
       tags:
-      - admin
+      - Orders
+  /filter:
+    get:
+      consumes:
+      - application/json
+      description: Searches products based on the provided search query and optional
+        sorting criteria.
+      parameters:
+      - description: Search query for products
+        in: query
+        name: search
+        type: string
+      - description: 'Sorting criteria: a_to_z, z_to_a, price_low_to_high, price_high_to_low,
+          new_arrivals, popularity'
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      summary: Search products
+      tags:
+      - Products
+  /ordercancel/{id}:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Order cancel and update the status , other details
+      parameters:
+      - description: orderItems order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cancelation reason?
+        in: formData
+        name: reason
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Order cancel
+      tags:
+      - Order
+  /orderdetails/{id}:
+    get:
+      description: Using OrderItems id fetch and shown the order details
+      parameters:
+      - description: OrderItems table orderId
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Order details
+      tags:
+      - Order
+  /orders:
+    get:
+      description: Fetch order table details and show the order list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: User Orders list
+      tags:
+      - Order
+  /product/{id}:
+    get:
+      description: Get a paginated list of products including product name, description,
+        stock, price, brand name, and image.
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "404":
+          description: Product details not found
+          schema:
+            type: json
+      summary: product details
+      tags:
+      - products
+  /product/rating/{id}:
+    post:
+      description: Product rating store
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Failed to create rating
+          schema:
+            type: json
+      summary: Rating store
+      tags:
+      - products
+  /user/address/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: This API is used for Delete the existing address of a user by his
+        address id .
+      parameters:
+      - description: Address ID
+        in: path
+        name: Id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "401":
+          description: Unauthorized
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Delete address
+      tags:
+      - Users/Profile
+    patch:
+      consumes:
+      - application/json
+      description: This API is used for editing the existing address of a user by
+        his address id .
+      parameters:
+      - description: Address ID
+        in: path
+        name: addressId
+        required: true
+        type: integer
+      - description: Edit address
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.addressUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "401":
+          description: Unauthorized
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Edit address
+      tags:
+      - Users/Profile
+    post:
+      consumes:
+      - application/json
+      description: add multiple addresses for a single user
+      parameters:
+      - description: New address details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.addressUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "401":
+          description: Unauthorized
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Add address
+      tags:
+      - Users/Profile
+  /user/edit:
+    patch:
+      consumes:
+      - application/json
+      description: This API is used for updating the user's information like name
+        , email and phone number .
+      parameters:
+      - description: Address ID
+        in: path
+        name: addressId
+        required: true
+        type: integer
+      - description: User Details
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controller.userDetailUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "401":
+          description: Unauthorized
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Update profile
+      tags:
+      - Users/Profile
+  /user/forgotpass:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Sends an OTP to the user's email for password recovery if the email
+        exists in the database.
+      parameters:
+      - description: User's email address
+        in: formData
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      summary: Send OTP for password recovery
+      tags:
+      - User
+  /user/forgotpass/otp:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Checks if the provided OTP is valid and not expired for password
+        recovery.
+      parameters:
+      - description: User's OTP
+        in: formData
+        name: otp
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      summary: Check OTP validity
+      tags:
+      - User
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user by verifying their username and password.
+      parameters:
+      - description: User credentials (Username and Password)
+        in: body
+        name: Credentials
+        required: true
+        schema:
+          $ref: '#/definitions/controller.userDetailLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Login
+      tags:
+      - Authentication
+  /user/logout:
+    get:
+      description: Authenticated user logout , and remove cookie and jwt from the
+        client side.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: User Logout
+      tags:
+      - Authentication
+  /user/new-password:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Sets a new password for the user after verifying the OTP.
+      parameters:
+      - description: New password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      summary: Set new password
+      tags:
+      - User
+  /user/profile:
+    get:
+      description: Get details of the authenticated user including first name, last
+        name, username, email, phone number, and wallet balance.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "401":
+          description: Unauthorized
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Get User Details
+      tags:
+      - User/Profile
+  /user/signup:
+    post:
+      consumes:
+      - application/json
+      description: SignUp new user with unique email and all other details.
+      parameters:
+      - description: User SignUp credentials
+        in: body
+        name: Credentials
+        required: true
+        schema:
+          $ref: '#/definitions/controller.userDetailSignUp'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      summary: User SignUp
+      tags:
+      - Signup
+  /user/signup/otp:
+    post:
+      consumes:
+      - multipart/form-data
+      description: otp verification after given user details
+      parameters:
+      - description: Verification otp
+        in: formData
+        name: otp
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      summary: User SignUp otp verify
+      tags:
+      - Signup
+  /user/signup/resend:
+    post:
+      description: Resend otp send for signup
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      summary: User SignUp resend otp send
+      tags:
+      - Signup
+  /wishlist:
+    delete:
+      description: remove product that from the wishlist
+      parameters:
+      - description: product id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "401":
+          description: Unauthorized
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Wishlist remove product
+      tags:
+      - Wishlist
+    get:
+      description: Added wishlist product list shown
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "401":
+          description: Unauthorized
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Wishlist show
+      tags:
+      - Wishlist
+    post:
+      description: Add product that likes to wishlist
+      parameters:
+      - description: product id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "401":
+          description: Unauthorized
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Wishlist add product
+      tags:
+      - Wishlist
 swagger: "2.0"

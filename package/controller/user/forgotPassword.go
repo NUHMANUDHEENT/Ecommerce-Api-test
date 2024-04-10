@@ -14,19 +14,22 @@ import (
 var userCheck models.Users
 var otpValid = false
 
-// =========== check user if already exist ==========
+// ForgotUserCheck is an API endpoint to send an OTP to the user's email for password recovery.
+// @Summary Send OTP for password recovery
+// @Description Sends an OTP to the user's email for password recovery if the email exists in the database.
+// @Tags User
+// @Accept multipart/form-data
+// @Produce json
+// @Param email formData string true "User's email address"
+// @Success 200 {json} SuccessResponse
+// @Failure 400 {json} ErrorResponse
+// @Router /user/forgotpass [post]
 func ForgotUserCheck(c *gin.Context) {
 	userCheck = models.Users{}
 	var otpStore models.OtpMail
-	err := c.ShouldBindJSON(&userCheck)
-	if err != nil {
-		c.JSON(501, gin.H{
-			"status": "Fail",
-			"error":  "json binding error",
-			"code":   501,
-		})
-	}
-	if err := initializer.DB.First(&userCheck, "email=?", userCheck.Email).Error; err != nil {
+	email := c.Request.FormValue("email")
+
+	if err := initializer.DB.First(&userCheck, "email=?", email).Error; err != nil {
 		c.JSON(404, gin.H{
 			"status": "Fail",
 			"error":  "user not found",
@@ -50,7 +53,7 @@ func ForgotUserCheck(c *gin.Context) {
 				Otp:       otp,
 				Email:     userCheck.Email,
 				CreatedAt: time.Now(),
-				ExpireAt:  time.Now().Add(30 * time.Second),
+				ExpireAt:  time.Now().Add(180 * time.Second),
 			}
 			err := initializer.DB.Create(&otpStore)
 			if err.Error != nil {
@@ -74,26 +77,27 @@ func ForgotUserCheck(c *gin.Context) {
 		}
 		c.JSON(200, gin.H{
 			"status":  "Success",
-			"message": "otp send to mail  " + otp,
+			"message": "otp send to mail  ",
+			"otp":     otp,
 		})
 	}
 }
 
-// VerifyOtp is used for verify
+// ForgotOtpCheck is an API endpoint to check the validity of the OTP for password recovery.
+// @Summary Check OTP validity
+// @Description Checks if the provided OTP is valid and not expired for password recovery.
+// @Tags User
+// @Accept multipart/form-data
+// @Produce json
+// @Param otp formData string true "User's OTP"
+// @Success 200 {json} SuccessResponse
+// @Failure 400 {json} ErrorResponse
+// @Router /user/forgotpass/otp [post]
 func ForgotOtpCheck(c *gin.Context) {
-	var otpcheck models.OtpMail
-	var otpExistTable models.OtpMail
-	initializer.DB.First(&otpExistTable, "email=?", userCheck.Email)
-	err := c.ShouldBindJSON(&otpcheck)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"status": "Fail",
-			"error":  "failed to bind otp details",
-			"code":   400,
-		})
-	}
+	userOTP := c.Request.FormValue("otp")
+
 	var existingOTP models.OtpMail
-	if err := initializer.DB.Where("otp = ? AND expire_at > ?", otpcheck.Otp, time.Now()).First(&existingOTP).Error; err != nil {
+	if err := initializer.DB.Where("otp = ? AND expire_at > ?", userOTP, time.Now()).First(&existingOTP).Error; err != nil {
 		c.JSON(401, gin.H{
 			"status": "Fail",
 			"error":  "Invalid or expired OTP",
@@ -109,48 +113,49 @@ func ForgotOtpCheck(c *gin.Context) {
 	}
 }
 
+// NewPasswordSet is an API endpoint to set a new password after verifying the OTP.
+// @Summary Set new password
+// @Description Sets a new password for the user after verifying the OTP.
+// @Tags User
+// @Accept  multipart/form-data
+// @Produce json
+// @Param password formData string true "New password"
+// @Success 201 {json}  SuccessResponse
+// @Failure  400 {json} ErrorResponse
+// @Router /user/new-password [patch]
 func NewPasswordSet(c *gin.Context) {
-	if otpValid {
-		var newPassSet models.Users
-		err := c.ShouldBindJSON(&newPassSet)
-		if err != nil {
-			c.JSON(500, gin.H{
-				"status": "fail",
-				"error":  "failed to bind data",
-				"code":   500,
-			})
-		} else {
-			HashPass, err := bcrypt.GenerateFromPassword([]byte(newPassSet.Password), bcrypt.DefaultCost)
-			if err != nil {
-				c.JSON(500, gin.H{
-					"status": "Fail",
-					"Error":  "Failed to hash password",
-					"code":   500,
-				})
-			} else {
-				if err := initializer.DB.Model(&userCheck).Where("email=?", userCheck.Email).Updates(models.Users{
-					Password: string(HashPass),
-				}).Error; err != nil {
-					c.JSON(500, gin.H{
-						"status": "Fail",
-						"error":  "failed to update data",
-						"code":   500,
-					})
-				} else {
-					c.JSON(201, gin.H{
-						"status":  "Success",
-						"message": "password updated",
-					})
-				}
-			}
-		}
-		userCheck = models.Users{}
-	} else {
+	password := c.Request.FormValue("password")
+	if !otpValid {
 		c.JSON(501, gin.H{
 			"status": "Fail",
-			"error":  "verify your eamil first",
+			"error":  "verify your email first",
 			"code":   403,
 		})
+		return
 	}
+	HashPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"status": "Fail",
+			"Error":  "Failed to hash password",
+			"code":   400,
+		})
+		return
+	}
+	if err := initializer.DB.Model(&userCheck).Where("email=?", userCheck.Email).Updates(models.Users{
+		Password: string(HashPass),
+	}).Error; err != nil {
+		c.JSON(500, gin.H{
+			"status": "Fail",
+			"error":  "failed to update data",
+			"code":   500,
+		})
+	} else {
+		c.JSON(201, gin.H{
+			"status":  "Success",
+			"message": "password updated",
+		})
+	}
+	userCheck = models.Users{}
 	otpValid = false
 }

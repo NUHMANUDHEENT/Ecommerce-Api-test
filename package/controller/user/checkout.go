@@ -11,7 +11,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// =============== user checkout the items and payment ================
+// Place the order based on cart items with given payment system  and shipping method
+// @Summery  place an order
+// @Description place an order by given cart items, calculate total price of all products in the shopping cart, generate a unique OrderID,place the order with give payment method
+// @Tags  Orders
+// @Accept multipart/form-data
+// @Produce  json
+// @Secure ApiKeyAuth
+// @Param payment formData string true "Payment Method"
+// @Param address formData string true  "Address ID"
+// @Param coupon formData string false "Coupon Code"
+// @Success 200 {json} SuccessResponse
+// @Failure 400 {json} ErrorResponse
+// @Router /checkout [post]
 func CheckOut(c *gin.Context) {
 	couponCode := ""
 	var cartItems []models.Cart
@@ -26,8 +38,8 @@ func CheckOut(c *gin.Context) {
 		return
 	}
 	// ============= check if given payment method and addres =============
-	paymentMethod := c.Request.FormValue("payment")
-	Address, _ := strconv.ParseUint(c.Request.FormValue("address"), 10, 64)
+	paymentMethod := c.Request.PostFormValue("payment")
+	Address, _ := strconv.ParseUint(c.Request.PostFormValue("address"), 10, 64)
 	if paymentMethod == "" || Address == 0 {
 		c.JSON(400, gin.H{
 			"status": "Fail",
@@ -260,158 +272,5 @@ func CheckOut(c *gin.Context) {
 			"totalAmount": totalAmount,
 			"message":     "Order will arrive with in 4 days",
 		})
-	}
-}
-
-// ============== list the orders to user ===============
-func OrderView(c *gin.Context) {
-	var orders []models.Order
-	userId := c.GetUint("userid")
-	initializer.DB.Where("user_id=?", userId).Find(&orders)
-	c.JSON(200, gin.H{
-		"status": "success",
-		"orders": orders,
-	})
-	orders = []models.Order{}
-}
-
-// ============= show the order details to user ==============
-func OrderDetails(c *gin.Context) {
-	var orderitems []models.OrderItems
-	orderId := c.Param("ID")
-	if err := initializer.DB.Where("order_items.order_id=?", orderId).Preload("Order").Preload("Product").Find(&orderitems).Error; err != nil {
-		c.JSON(400, gin.H{
-			"status": "Fail",
-			"error":  "Can't find order details",
-			"code":   400,
-		})
-		return
-	}
-	var subTotal float64
-	var totalAmount float64	
-	var orderPayment string	
-	for _, val := range orderitems {
-		subTotal += float64(val.SubTotal)
-		totalAmount = val.Order.OrderAmount
-		orderPayment = val.Order.OrderPaymentMethod
-	}
-
-	c.JSON(200, gin.H{
-		"status":      "Success",
-		"orderitems":  orderitems,
-		"totalAmount": totalAmount,
-		"subTotal":    subTotal,
-		"discount":    subTotal - totalAmount,
-		"paymentMethod": orderPayment,
-
-	})
-}
-
-// ============== cancel the order if user don't want ==============
-func CancelOrder(c *gin.Context) {
-	var orderItem models.OrderItems
-	orderItemId := c.Param("ID")
-	reason := c.Request.FormValue("reason")
-	tx := initializer.DB.Begin()
-	if reason == "" {
-		c.JSON(402, gin.H{
-			"status":  "Fail",
-			"message": "Please provide a valid cancellation reason.",
-			"code":    402,
-		})
-	} else {
-		if err := tx.First(&orderItem, orderItemId).Error; err != nil {
-			c.JSON(404, gin.H{
-				"status": "Fail",
-				"error":  "can't find order",
-				"code":   404,
-			})
-			tx.Rollback()
-			return
-		}
-		if orderItem.OrderStatus == "cancelled" {
-			c.JSON(202, gin.H{
-				"status":  "Fail",
-				"message": "product already cancelled",
-				"code":    202,
-			})
-			return
-		}
-		// ======= update status as cancelled ======
-		orderItem.OrderStatus = "cancelled"
-		orderItem.OrderCancelReason = reason
-		if err := tx.Save(&orderItem).Error; err != nil {
-			c.JSON(500, gin.H{
-				"status": "Fail",
-				"error":  "Failed to  save changes to database.",
-				"code":   500,
-			})
-			tx.Rollback()
-			return
-		}
-
-		var orderAmount models.Order
-		if err := tx.First(&orderAmount, orderItem.OrderId).Error; err != nil {
-			c.JSON(404, gin.H{
-				"status": "Fail",
-				"error":  "failed to find order details",
-				"code":   404,
-			})
-			tx.Rollback()
-			return
-		}
-		//========== check coupon condition ============
-		var couponRemove models.Coupon
-		if orderAmount.CouponCode != "" {
-			if err := initializer.DB.First(&couponRemove, "code=?", orderAmount.CouponCode).Error; err != nil {
-				c.JSON(404, gin.H{
-					"status": "Fail",
-					"error":  "can't find coupon code",
-					"code":   404,
-				})
-				tx.Rollback()
-			}
-		}
-		if couponRemove.CouponCondition > int(orderAmount.OrderAmount) {
-			orderAmount.OrderAmount += couponRemove.Discount
-			orderAmount.OrderAmount -= float64(orderItem.SubTotal)
-			orderAmount.CouponCode = ""
-		}
-		if err := tx.Save(&orderAmount).Error; err != nil {
-			c.JSON(500, gin.H{
-				"status": "Fail",
-				"error":  "failed to update order details",
-				"code":   500,
-			})
-			tx.Rollback()
-			return
-		}
-		var walletUpdate models.Wallet
-		if err := tx.First(&walletUpdate, "user_id=?", orderAmount.UserId).Error; err != nil {
-			c.JSON(501, gin.H{
-				"status": "Fail",
-				"error":  "failed to fetch wallet details",
-				"code":   501,
-			})
-			tx.Rollback()
-			return
-		} else {
-			walletUpdate.Balance += orderAmount.OrderAmount
-			tx.Save(&walletUpdate)
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.JSON(201, gin.H{
-				"status":  "Fail",
-				"message": "failed to commit transaction",
-				"code":    201,
-			})
-			tx.Rollback()
-		} else {
-			c.JSON(201, gin.H{
-				"status":  "Success",
-				"message": "Order Cancelled",
-				"data":    orderItem.OrderStatus,
-			})
-		}
 	}
 }

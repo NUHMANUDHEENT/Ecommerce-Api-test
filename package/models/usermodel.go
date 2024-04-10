@@ -24,7 +24,7 @@ type OtpMail struct {
 	ExpireAt  time.Time `gorm:"type:timestamp;not null"`
 }
 type Address struct {
-	gorm.Model
+	ID      uint   `gorm:"primarykey"`
 	Address string `json:"user_address"`
 	City    string `json:"user_city"`
 	State   string `json:"user_state"`

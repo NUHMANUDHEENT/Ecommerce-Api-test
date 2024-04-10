@@ -7,8 +7,9 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"     
-	ginSwagger "github.com/swaggo/gin-swagger" 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_"project1/docs"
 )
 
 func init() {
@@ -16,12 +17,17 @@ func init() {
 	initializer.LoadDatabase()
 }
 
+//	@title			E Commerce API
+//	@version		1.0
+//	@description	Ecommerce API in go using Gin frame work
+
+//	@host		localhost:8080
+//	@BasePath	/
+
 func main() {
 	router := gin.Default()
 
 	router.LoadHTMLGlob("templates/*")
-
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	store := cookie.NewStore([]byte("secret"))
 	router.Use(sessions.Sessions("mysession", store))
@@ -32,6 +38,7 @@ func main() {
 	admin := router.Group("/admin")
 	routers.AdminGroup(admin)
 
+	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run(":8080")
 
 }
