@@ -25,9 +25,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "LandingPage"
                 ],
-                "summary": "Get a list of products",
+                "summary": "Landing page",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -509,6 +509,11 @@ const docTemplate = `{
         },
         "/admin/offer": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Retrieve a list of all available offers",
                 "produces": [
                     "application/json"
@@ -534,6 +539,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Add a new offer to the system",
                 "consumes": [
                     "application/json"
@@ -575,6 +585,11 @@ const docTemplate = `{
         },
         "/admin/offer/{ID}": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete an offer from the system by its unique identifier",
                 "produces": [
                     "application/json"
@@ -611,6 +626,11 @@ const docTemplate = `{
         },
         "/admin/ordercancel": {
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Allows the admin to cancel an existing order.",
                 "consumes": [
                     "application/json"
@@ -649,6 +669,11 @@ const docTemplate = `{
         },
         "/admin/orders": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Retrieves a list of order items for admin view.",
                 "consumes": [
                     "application/json"
@@ -678,6 +703,11 @@ const docTemplate = `{
         },
         "/admin/orderstatus": {
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Allows the admin to update status of an existing order.",
                 "consumes": [
                     "multipart/form-data"
@@ -721,8 +751,278 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/product": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Adds a new product with images and other details",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "Admin/Products"
+                ],
+                "summary": "Add a new product with images",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Product price",
+                        "name": "price",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product size",
+                        "name": "size",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product color",
+                        "name": "color",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Product quantity",
+                        "name": "quantity",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product description",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Category ID of the product",
+                        "name": "categoryId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Product images",
+                        "name": "images",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "json"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "json"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/product/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "delete a product by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin/Products"
+                ],
+                "summary": "delete a product by its ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "product's id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "json"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "json"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Edit  an existing product using its unique identifier",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin/Products"
+                ],
+                "summary": "edit a product by id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "product Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Product price",
+                        "name": "price",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product size",
+                        "name": "size",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product color",
+                        "name": "color",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Product quantity",
+                        "name": "quantity",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product description",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Category ID of the product",
+                        "name": "categoryId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Product images",
+                        "name": "images",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "json"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "json"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/products": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get a list of all products from the database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin/Products"
+                ],
+                "summary": "List all products",
+                "responses": {
+                    "200": {
+                        "description": "The order status has been changed successfully ",
+                        "schema": {
+                            "type": "json"
+                        }
+                    },
+                    "400": {
+                        "description": "An error occurred while updating status of the order.",
+                        "schema": {
+                            "type": "json"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/sales/report": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Generates a sales report including total sales amount, total sales count, and total order cancellations.",
                 "produces": [
                     "application/json"
@@ -743,6 +1043,11 @@ const docTemplate = `{
         },
         "/admin/sales/report/excel": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Generates a sales report in Excel format and sends it as a downloadable file.",
                 "produces": [
                     "application/json"
@@ -769,6 +1074,11 @@ const docTemplate = `{
         },
         "/admin/sales/report/pdf": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Generates a sales report in Excel format and sends it as a downloadable file.",
                 "produces": [
                     "application/json"
@@ -829,6 +1139,11 @@ const docTemplate = `{
         },
         "/admin/user": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "get list of all registered admins",
                 "consumes": [
                     "application/json"
@@ -861,6 +1176,11 @@ const docTemplate = `{
         },
         "/admin/user/{id}": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete an existing user from admin side",
                 "consumes": [
                     "application/json"
@@ -903,6 +1223,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Edit user details based on user ID",
                 "consumes": [
                     "application/json"
@@ -955,6 +1280,11 @@ const docTemplate = `{
         },
         "/admin/userblock/{id}": {
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update User Bloking status as Blocked or Unblocked",
                 "consumes": [
                     "application/json"
@@ -992,6 +1322,26 @@ const docTemplate = `{
                         "description": "Server error while trying to change blocking status",
                         "schema": {
                             "type": "json"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "get": {
+                "description": "Initiates the Google login process by redirecting to Google's OAuth authorization endpoint.",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Initiate Google login",
+                "responses": {
+                    "302": {
+                        "description": "Redirects to Google login page",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -1457,10 +1807,10 @@ const docTemplate = `{
             "post": {
                 "description": "Product rating store",
                 "produces": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "tags": [
-                    "products"
+                    "Products"
                 ],
                 "summary": "Rating store",
                 "parameters": [
@@ -1469,6 +1819,55 @@ const docTemplate = `{
                         "description": "Product ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Rating value",
+                        "name": "rating",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "json"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create rating",
+                        "schema": {
+                            "type": "json"
+                        }
+                    }
+                }
+            }
+        },
+        "/product/review/{id}": {
+            "post": {
+                "description": "Product Review store",
+                "produces": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Review store",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Product id fetch",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product review",
+                        "name": "review",
+                        "in": "formData",
                         "required": true
                     }
                 ],
@@ -1495,7 +1894,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "products"
+                    "Products"
                 ],
                 "summary": "product details",
                 "parameters": [

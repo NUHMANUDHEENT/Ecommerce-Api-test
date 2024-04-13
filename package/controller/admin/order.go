@@ -13,7 +13,7 @@ import (
 // @Tags Admin/Orders
 // @Accept json
 // @Produce json
-// @Secure ApiKeyAuth
+// @Security ApiKeyAuth
 // @Success 200 {json} JSON Response "A successful response."
 // @Failure 404 {json} JSON  ErrorResponse "An error occurred while processing your request."
 // @Router /admin/orders [get]
@@ -39,8 +39,8 @@ func AdminOrdersView(c *gin.Context) {
 		})
 	}
 	c.JSON(200, gin.H{
-		"status":     "Success",
-		"orderItems": orderShow,
+		"status":  "Success",
+		"data": orderShow,
 	})
 }
 
@@ -51,7 +51,7 @@ func AdminOrdersView(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "The ID of the order that you want to cancel"
-// @Secure ApiKeyAuth
+// @Security ApiKeyAuth
 // @Success 200 {json} JSON Response "The order has been successfully canceled"
 // @Failure 400 {json} JSON  ErrorResponse "An error occurred while cancel the order."
 // @Router /admin/ordercancel [patch]
@@ -140,7 +140,7 @@ func AdminCancelOrder(c *gin.Context) {
 // @Produce json
 // @Param id path int true "The ID of the order that you want to upfate status"
 // @Param status formData string true " New status for the order"
-// @Secure ApiKeyAuth
+// @Security ApiKeyAuth
 // @Success 200 {json} JSON Response "The order status has been changed successfully "
 // @Failure 400 {json} JSON  ErrorResponse "An error occurred while updating status of the order."
 // @Router /admin/orderstatus [patch]

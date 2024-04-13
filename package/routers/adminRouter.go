@@ -24,10 +24,9 @@ func AdminGroup(r *gin.RouterGroup) {
 
 	//================product managment=======================
 	r.GET("/products", middleware.AuthMiddleware(roleAdmin), controller.ProductList)
-	r.POST("/products", middleware.AuthMiddleware(roleAdmin), controller.AddProducts)
-	r.POST("/products/image", middleware.AuthMiddleware(roleAdmin), controller.UploadImage)
-	r.PATCH("products/:ID", middleware.AuthMiddleware(roleAdmin), controller.EditProducts)
-	r.DELETE("products/:ID", middleware.AuthMiddleware(roleAdmin), controller.DeleteProducts)
+	r.POST("/product", middleware.AuthMiddleware(roleAdmin), controller.AddProducts)
+	r.PATCH("product/:ID", middleware.AuthMiddleware(roleAdmin), controller.EditProducts)
+	r.DELETE("product/:ID", middleware.AuthMiddleware(roleAdmin), controller.DeleteProducts)
 
 	//================category managment=======================
 	r.GET("/categories", middleware.AuthMiddleware(roleAdmin), controller.CategoryList)

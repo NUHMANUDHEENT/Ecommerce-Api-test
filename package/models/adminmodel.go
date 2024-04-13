@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -14,15 +15,15 @@ type Admins struct {
 }
 type Products struct {
 	gorm.Model
-	Name        string `gorm:"unique" json:"p_name"`
-	Price       uint   `json:"p_price"`
-	Size        string `json:"p_size"`
-	Color       string `json:"p_color"`
-	Quantity    uint   `json:"p_quantity"`
-	Description string `json:"p_description"`
-	ImagePath   string
-	Status      bool `json:"p_blocking"`
-	CategoryId  int  `json:"category_id"`
+	Name        string         `gorm:"unique" json:"p_name"`
+	Price       float64        `json:"p_price"`
+	Size        string         `json:"p_size"`
+	Color       string         `json:"p_color"`
+	Quantity    uint           `json:"p_quantity"`
+	Description string         `json:"p_description"`
+	ImagePath   pq.StringArray `gorm:"type:text[]" json:"image_path"`
+	Status      bool           `json:"p_blocking"`
+	CategoryId  int            `json:"category_id"`
 	Category    Category
 }
 type Category struct {

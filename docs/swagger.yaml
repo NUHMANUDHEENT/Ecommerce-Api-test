@@ -116,9 +116,9 @@ paths:
           description: OK
           schema:
             type: string
-      summary: Get a list of products
+      summary: Landing page
       tags:
-      - users
+      - LandingPage
   /admin:
     get:
       consumes:
@@ -434,6 +434,8 @@ paths:
           description: Bad Request
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Get a list of offers
       tags:
       - Admin/Offer
@@ -460,6 +462,8 @@ paths:
           description: Failed to create offer
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Add a new offer
       tags:
       - Admin/Offer
@@ -484,6 +488,8 @@ paths:
           description: Failed to delete offer
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Delete an offer by ID
       tags:
       - Admin/Offer
@@ -509,6 +515,8 @@ paths:
           description: An error occurred while cancel the order.
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Cancel an order
       tags:
       - Admin/Orders
@@ -528,6 +536,8 @@ paths:
           description: An error occurred while processing your request.
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: View admin orders
       tags:
       - Admin/Orders
@@ -558,9 +568,187 @@ paths:
           description: An error occurred while updating status of the order.
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Status update of an order
       tags:
       - Admin/Orders
+  /admin/product:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Adds a new product with images and other details
+      parameters:
+      - description: Product name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Product price
+        in: formData
+        name: price
+        required: true
+        type: integer
+      - description: Product size
+        in: formData
+        name: size
+        required: true
+        type: string
+      - description: Product color
+        in: formData
+        name: color
+        required: true
+        type: string
+      - description: Product quantity
+        in: formData
+        name: quantity
+        required: true
+        type: integer
+      - description: Product description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Category ID of the product
+        in: formData
+        name: categoryId
+        required: true
+        type: integer
+      - collectionFormat: csv
+        description: Product images
+        in: formData
+        items:
+          type: file
+        name: images
+        required: true
+        type: array
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: Add a new product with images
+      tags:
+      - Admin/Products
+  /admin/product/{id}:
+    delete:
+      description: delete a product by its ID
+      parameters:
+      - description: product's id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: delete a product by its ID
+      tags:
+      - Admin/Products
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Edit  an existing product using its unique identifier
+      parameters:
+      - description: product Id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Product name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Product price
+        in: formData
+        name: price
+        required: true
+        type: integer
+      - description: Product size
+        in: formData
+        name: size
+        required: true
+        type: string
+      - description: Product color
+        in: formData
+        name: color
+        required: true
+        type: string
+      - description: Product quantity
+        in: formData
+        name: quantity
+        required: true
+        type: integer
+      - description: Product description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Category ID of the product
+        in: formData
+        name: categoryId
+        required: true
+        type: integer
+      - collectionFormat: csv
+        description: Product images
+        in: formData
+        items:
+          type: file
+        name: images
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Bad Request
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: edit a product by id
+      tags:
+      - Admin/Products
+  /admin/products:
+    get:
+      description: get a list of all products from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'The order status has been changed successfully '
+          schema:
+            type: json
+        "400":
+          description: An error occurred while updating status of the order.
+          schema:
+            type: json
+      security:
+      - ApiKeyAuth: []
+      summary: List all products
+      tags:
+      - Admin/Products
   /admin/sales/report:
     get:
       description: Generates a sales report including total sales amount, total sales
@@ -572,6 +760,8 @@ paths:
           description: OK
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Generate sales report
       tags:
       - Admin/Sales
@@ -590,6 +780,8 @@ paths:
           description: ' Internal Server Error'
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Generate sales report in Excel
       tags:
       - Admin/Sales
@@ -608,6 +800,8 @@ paths:
           description: Internal Server Error
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Generate sales report in Excel
       tags:
       - Admin/Sales
@@ -651,6 +845,8 @@ paths:
           description: Failed to fetch user data
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: list of users
       tags:
       - Admin/Users
@@ -680,6 +876,8 @@ paths:
           description: Failed to delete user
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Delete user
       tags:
       - Admin/Users
@@ -713,6 +911,8 @@ paths:
           description: Failed to update details
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Edit user details
       tags:
       - Admin/Users
@@ -742,9 +942,25 @@ paths:
           description: Server error while trying to change blocking status
           schema:
             type: json
+      security:
+      - ApiKeyAuth: []
       summary: Block user
       tags:
       - Admin/Users
+  /auth/login:
+    get:
+      description: Initiates the Google login process by redirecting to Google's OAuth
+        authorization endpoint.
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirects to Google login page
+          schema:
+            type: string
+      summary: Initiate Google login
+      tags:
+      - auth
   /cart:
     get:
       consumes:
@@ -1065,7 +1281,7 @@ paths:
             type: json
       summary: product details
       tags:
-      - products
+      - Products
   /product/rating/{id}:
     post:
       description: Product rating store
@@ -1075,8 +1291,13 @@ paths:
         name: id
         required: true
         type: integer
+      - description: Rating value
+        in: formData
+        name: rating
+        required: true
+        type: string
       produces:
-      - application/json
+      - multipart/form-data
       responses:
         "200":
           description: OK
@@ -1088,7 +1309,35 @@ paths:
             type: json
       summary: Rating store
       tags:
-      - products
+      - Products
+  /product/review/{id}:
+    post:
+      description: Product Review store
+      parameters:
+      - description: Product id fetch
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Product review
+        in: formData
+        name: review
+        required: true
+        type: string
+      produces:
+      - multipart/form-data
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+        "400":
+          description: Failed to create rating
+          schema:
+            type: json
+      summary: Review store
+      tags:
+      - Products
   /user/address/{id}:
     delete:
       consumes:

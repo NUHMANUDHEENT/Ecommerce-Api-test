@@ -9,7 +9,7 @@ import (
 
 // @Summary New coupon create
 // @Description  Admin can Create a new coupon with condition and validity
-// @Tags /admin/coupon
+// @Tags Admin/Coupon
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
@@ -45,7 +45,7 @@ func CouponCreate(c *gin.Context) {
 // CouponView godoc
 // @Summary Get coupon details
 // @Description Get details of all coupons
-// @Tags /admin/coupon
+// @Tags Admin/Coupon
 // @ID get_all_products
 // @Accept  json
 // @Produce json
@@ -82,7 +82,7 @@ func CouponView(c *gin.Context) {
 // CouponDelete godoc
 // @Summary Delete a coupon by ID
 // @Description Delete a coupon by its unique identifier
-// @Tags /admin/coupon
+// @Tags Admin/Coupon
 // @ID deleteCouponByID
 // @Param ID path int true "Coupon ID"
 // @Produce json

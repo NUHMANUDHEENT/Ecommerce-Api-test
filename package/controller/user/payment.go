@@ -16,10 +16,6 @@ import (
 	"github.com/razorpay/razorpay-go"
 )
 
-func PaymentPage(c *gin.Context) {
-	c.HTML(200, "payment.html", nil)
-}
-
 func PaymentHandler(orderId int, amount int) (string, error) {
 
 	client := razorpay.NewClient(os.Getenv("RAZOR_PAY_KEY"), os.Getenv("RAZOR_PAY_SECRET"))

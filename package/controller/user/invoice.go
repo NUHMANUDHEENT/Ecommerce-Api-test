@@ -104,13 +104,13 @@ func CreateInvoice(c *gin.Context) {
 		pdf.CellFormat(20, 10, fmt.Sprintf("%d", i+1), "1", 0, "C", false, 0, "")
 		pdf.CellFormat(70, 10, order.Product.Name, "1", 0, "", false, 0, "")
 		pdf.CellFormat(30, 10, fmt.Sprintf("%d", order.Quantity), "1", 0, "C", false, 0, "")
-		pdf.CellFormat(30, 10, fmt.Sprintf("%d", order.Product.Price), "1", 0, "R", false, 0, "")
-		pdf.CellFormat(40, 10, fmt.Sprintf("%d", order.SubTotal), "1", 0, "R", false, 0, "")
+		pdf.CellFormat(30, 10, fmt.Sprintf("%.2f", order.Product.Price), "1", 0, "R", false, 0, "")
+		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f", order.SubTotal), "1", 0, "R", false, 0, "")
 		pdf.Ln(10)
 		totalAmount += float64(order.SubTotal)
 	}
 	if order.ShippingCharge > 0 {
-		order.OrderAmount -= order.ShippingCharge
+		order.OrderAmount -= float64(order.ShippingCharge)
 	}
 	Discount = totalAmount - order.OrderAmount
 	totalAmount -= float64(Discount)
@@ -120,7 +120,7 @@ func CreateInvoice(c *gin.Context) {
 		pdf.Ln(10)
 	}
 	if order.ShippingCharge > 0 {
-		totalAmount += order.ShippingCharge
+		totalAmount += float64(order.ShippingCharge)
 		pdf.CellFormat(150, 10, "Shipping charge:", "1", 0, "R", true, 0, "")
 		pdf.CellFormat(40, 10, fmt.Sprintf("%2.f", order.ShippingCharge), "1", 0, "R", true, 0, "")
 		pdf.Ln(10)

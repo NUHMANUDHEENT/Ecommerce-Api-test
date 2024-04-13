@@ -11,13 +11,14 @@ import (
 )
 
 var products []models.Products
-//	@Summary		Get a list of products
-//	@Description	Get a list of products from the database
-//	@Tags			users
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{string}	OK
-//	@Router			/ [get]
+
+// @Summary		Landing page
+// @Description	Get a list of products from the database
+// @Tags			LandingPage
+// @Accept			json
+// @Produce		json
+// @Success		200	{string}	OK
+// @Router			/ [get]
 func ProductsPage(c *gin.Context) {
 	products = []models.Products{}
 	var productList []gin.H
@@ -42,18 +43,19 @@ func ProductsPage(c *gin.Context) {
 		"data":   productList,
 	})
 }
+
 // @Summary product details
 // @Description Get a paginated list of products including product name, description, stock, price, brand name, and image.
-// @Tags products
+// @Tags Products
 // @Produce json
 // @Param id path integer true "Product ID"
-// @Success 200 {json} SuccessResponse
+// @Success 200 {json} Suc	cessResponse
 // @Failure 404 {json} JSON "Product details not found"
 // @Router /product/{id} [get]
 func ProductDetails(c *gin.Context) {
 	var productdetails models.Products
 	var quantity string
-	// var productList []gin.H
+	var productDetailsShow []gin.H
 	id := c.Param("ID")
 	if err := initializer.DB.First(&productdetails, id).Error; err != nil {
 		c.JSON(404, gin.H{
@@ -69,7 +71,6 @@ func ProductDetails(c *gin.Context) {
 		quantity = "Product available"
 		discount := OfferDiscountCalc(int(productdetails.ID))
 		rating := RatingCalc(id, c)
-		c.JSON(200, gin.H{})
 		var reviewView []models.Review
 		if err := initializer.DB.Where("product_id=?", id).Joins("User").Find(&reviewView).Error; err != nil {
 			c.JSON(500, gin.H{
@@ -89,24 +90,47 @@ func ProductDetails(c *gin.Context) {
 			})
 			return
 		}
+		productDetailsShow = append(productDetailsShow, gin.H{
+			"name":        productdetails.Name,
+			"price":       productdetails.Price,
+			"description": productdetails.Description,
+			"size":        productdetails.Size,
+			"color":       productdetails.Color,
+			"imageURL":    productdetails.ImagePath,
+			"categoryId":  productdetails.CategoryId,
+		})
+		productDetailsShow = append(productDetailsShow, gin.H{"rating": rating})
+		for _, v := range reviewView {
+			productDetailsShow = append(productDetailsShow, gin.H{
+				"userName": v.User.Name,
+				"dateTime": v.Time,
+				"review":   v.Review,
+			})
+		}
+		for _, v := range relatedProducts {
+			productDetailsShow = append(productDetailsShow, gin.H{
+				"productName":  v.Name,
+				"productPrice": v.Price,
+				"productSize":  v.Size,
+			})
+		}
 		c.JSON(200, gin.H{
 			"status":                 "success",
-			"data":                   productdetails,
+			"data":                   productDetailsShow,
 			"offer":                  discount,
-			"productDiscountedPrice": productdetails.Price - uint(discount),
+			"productDiscountedPrice": productdetails.Price - discount,
 			"stockStatus":            quantity,
-			"rating":                 rating,
-			"review":                 reviewView,
-			"relatedProducts":        relatedProducts,
 		})
 
 	}
 }
+
 // @Summary  Rating store
 // @Description Product rating store
-// @Tags products
-// @Produce json
+// @Tags Products
+// @Produce  multipart/form-data
 // @Param id path integer true "Product ID"
+// @Param rating formData  string true "Rating value"
 // @Success 200 {json} SuccessResponse
 // @Failure 400 {json} JSON "Failed to create rating"
 // @Router /product/rating/{id} [post]
@@ -114,17 +138,11 @@ func RatingStore(c *gin.Context) {
 	var ratingValue models.Rating
 	var ratingStore models.Rating
 	productId := c.Param("ID")
-	err := c.ShouldBindJSON(&ratingValue)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"status": "Fail",
-			"error":  "failed to bind data",
-			"code":   400,
-		})
-	}
+	rating, _ := strconv.Atoi(c.Request.FormValue("rating"))
 	result := initializer.DB.First(&ratingStore, "product_id=?", productId)
 	if result.Error != nil {
 		ratingValue.Users = 1
+		ratingValue.Value = rating
 		if err := initializer.DB.Create(&ratingValue).Error; err != nil {
 			c.JSON(400, gin.H{
 				"status": "Fail",
@@ -137,9 +155,9 @@ func RatingStore(c *gin.Context) {
 				"message": "Thanks for rating"})
 		}
 	} else {
-		err := initializer.DB.Model(&ratingStore).Where("product_id=?",productId).Updates(models.Rating{
+		err := initializer.DB.Model(&ratingStore).Where("product_id=?", productId).Updates(models.Rating{
 			Users: ratingStore.Users + 1,
-			Value: ratingStore.Value + ratingValue.Value,
+			Value: ratingStore.Value + rating,
 		})
 		if err.Error != nil {
 			c.JSON(500, gin.H{
@@ -174,27 +192,37 @@ func RatingCalc(id string, c *gin.Context) float64 {
 	}
 	return 0
 }
+
+// @Summary  Review store
+// @Description Product Review store
+// @Tags Products
+// @Produce multipart/form-data
+// @Secure ApiKeyAuth
+// @Param id path integer true "Product id fetch"
+// @Param review formData string true "Product review"
+// @Success 200 {json} SuccessResponse
+// @Failure 400 {json} JSON "Failed to create rating"
+// @Router /product/review/{id} [post]
 func ReviewStore(c *gin.Context) {
 	var reviewStore models.Review
-	if err := c.ShouldBindJSON(&reviewStore); err != nil {
+	Id := c.Param("ID")
+	fmt.Println(Id)
+	ProductId, _ := strconv.Atoi(Id)
+	reviewStore = models.Review{
+		Review:    c.Request.FormValue("review"),
+		UserId:    int(c.GetUint("userid")),
+		Time:      time.Now().Format("2006-01-02"),
+		ProductId: uint(ProductId),
+	}
+	if err := initializer.DB.Create(&reviewStore).Error; err != nil {
 		c.JSON(500, gin.H{
 			"status": "Fail",
-			"error":  "failed to bind data",
+			"error":  "failed to store review",
 			"code":   500,
 		})
 	} else {
-		reviewStore.Time = time.Now().Format("2006-01-02")
-		reviewStore.UserId = int(c.GetUint("userid"))
-		if err := initializer.DB.Create(&reviewStore).Error; err != nil {
-			c.JSON(500, gin.H{
-				"status": "Fail",
-				"error":  "failed to store review",
-				"code":   500,
-			})
-		} else {
-			c.JSON(201, gin.H{
-				"status":  "Success",
-				"message": "Thank for your feedback"})
-		}
+		c.JSON(201, gin.H{
+			"status":  "Success",
+			"message": "Thank for your feedback"})
 	}
 }

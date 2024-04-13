@@ -15,7 +15,7 @@ import (
 // @Description Generates a sales report including total sales amount, total sales count, and total order cancellations.
 // @Tags Admin/Sales
 // @Produce json
-// @Secure ApiKeyAuth
+// @Security ApiKeyAuth
 // @Success 200 {json} JSON Response "OK"
 // @Router /admin/sales/report [get]
 func SalesReport(c *gin.Context) {
@@ -48,6 +48,7 @@ func SalesReport(c *gin.Context) {
 // @Description Generates a sales report in Excel format and sends it as a downloadable file.
 // @Tags Admin/Sales
 // @Produce json
+// @Security ApiKeyAuth
 // @Success 201 {json} JSON Response "Created"
 // @Failure 400 {json} JSON ErrorResponse " Internal Server Error"
 // @Router /admin/sales/report/excel [get]
@@ -122,6 +123,7 @@ func SalesReportExcel(c *gin.Context) {
 // @Description Generates a sales report in Excel format and sends it as a downloadable file.
 // @Tags Admin/Sales
 // @Produce json
+// @Security ApiKeyAuth
 // @Success 201 {json} JSON Response "Created"
 // @Failure 400 {json} JSON ErrorResponse "Internal Server Error"
 // @Router /admin/sales/report/pdf [get]
@@ -151,7 +153,7 @@ func SalesReportPDF(c *gin.Context) {
 		pdf.Cell(50, 10, strconv.Itoa(int(sale.OrderId)))
 		pdf.Cell(50, 10, sale.Product.Name)
 		pdf.Cell(50, 10, sale.Order.OrderDate.Format("2006-01-02"))
-		pdf.Cell(50, 10, fmt.Sprintf("%d", sale.SubTotal))
+		pdf.Cell(50, 10, fmt.Sprintf("%.2f", sale.SubTotal))
 		pdf.Ln(-1)
 	}
 

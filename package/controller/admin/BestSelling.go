@@ -9,7 +9,7 @@ import (
 
 // @Summary Best selling products
 // @Description Fetch  the best selling products from database
-// @Tags admin
+// @Tags Admin
 // @Accept json
 // @Produce json
 // @Secure ApiKeyAuth

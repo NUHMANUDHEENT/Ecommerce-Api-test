@@ -150,7 +150,7 @@ func AdminSignUp(c *gin.Context) {
 // @Tags	    Admin/Users
 // @Accept	    json
 // @Produce		json
-// @Secure      ApiKeyAuth  
+// @Security ApiKeyAuth 
 // @Success 200 {array} UpdateUserData "List of users"
 // @Failure 500 {json} ErrorResponse "Failed to fetch user data"
 // @Router	    /admin/user [get]
@@ -181,7 +181,7 @@ type  UpdateUserData struct {
 // @Tags Admin/Users
 // @Accept json
 // @Produce json
-// @Secure ApiKeyAuth
+// @Security ApiKeyAuth
 // @Param data body UpdateUserData true "Update user info"
 // @Success 200 {json} JSON "User updated successfully"
 // @Failure 404 {json} JSON "User not found"
@@ -234,7 +234,7 @@ func EditUserDetails(c *gin.Context) {
 // @Tags Admin/Users
 // @Accept json
 // @Produce json
-// @Secure ApiKeyAuth
+// @Security ApiKeyAuth
 // @Param id path integer true "User ID"
 // @Success 200 {json} JSON "User blocked or unblocked successfully"
 // @Failure 404 {json} JSON "User not found"
@@ -285,7 +285,7 @@ func BlockUser(c *gin.Context) {
 // @Tags Admin/Users
 // @Accept json
 // @Produce json
-// @Secure ApiKeyAuth
+// @Security ApiKeyAuth
 // @Param id path integer true "User ID"
 // @Success 200 {json} JSON "User deleted successfully"
 // @Failure 404 {json} JSON "User not found"

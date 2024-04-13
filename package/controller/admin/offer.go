@@ -12,7 +12,7 @@ import (
 // @Tags Admin/Offer
 // @ID getOfferList
 // @Produce json
-// @Secure ApiKeyAuth 
+// @Security ApiKeyAuth
 // @Success 200 {json} JSON "OK"
 // @Failure 400 {string} string error message
 // @Router /admin/offer [get]
@@ -39,7 +39,7 @@ func OfferList(c *gin.Context) {
 // @ID addOffer
 // @Accept json
 // @Produce json
-// @Secure ApiKeyAuth 
+// @Security ApiKeyAuth
 // @Param offer body models.Offer true "Offer details"
 // @Success 200 {json}  JSON "New Offer Created"
 // @Failure 400 {json}  ErrorResponse "Failed to create offer"
@@ -74,7 +74,7 @@ func OfferAdd(c *gin.Context) {
 // @Tags Admin/Offer
 // @ID deleteOffer
 // @Produce json
-// @Secure ApiKeyAuth 
+// @Security ApiKeyAuth
 // @Param ID path int true "Offer ID"
 // @Success 200 {json}  string  "Deleted Successfully"
 // @Failure 400 {json}     ErrorResponse "Failed to delete offer"

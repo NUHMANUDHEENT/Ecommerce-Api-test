@@ -24,7 +24,7 @@ func UserGroup(r *gin.RouterGroup) {
 	r.PATCH("/user/new-password", controller.NewPasswordSet)
 
 	//============= authentication google ======================
-	r.GET("/login", handler.Googlelogin)
+	r.GET("/auth/login", handler.Googlelogin)
 	r.GET("/auth/google/callback", handler.HandleGoogleCallback)
 
 	// ================= product page ===============

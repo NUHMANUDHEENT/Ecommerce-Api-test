@@ -4,12 +4,13 @@ import (
 	"project1/package/initializer"
 	"project1/package/routers"
 
+	_ "project1/docs"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	_"project1/docs"
 )
 
 func init() {
@@ -40,5 +41,6 @@ func main() {
 
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run(":8080")
+
 
 }

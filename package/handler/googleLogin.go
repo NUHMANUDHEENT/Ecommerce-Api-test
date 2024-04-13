@@ -38,6 +38,13 @@ func OauthSetup() *oauth2.Config {
 }
 
 // =================== check the authentication =============
+// Googlelogin initiates the Google login process.
+// @Summary Initiate Google login
+// @Description Initiates the Google login process by redirecting to Google's OAuth authorization endpoint.
+// @Tags auth
+// @Produce html
+// @Success 302 {string} string "Redirects to Google login page"
+// @Router /auth/login [get]
 func Googlelogin(c *gin.Context) {
 	googleConfig := OauthSetup()
 	url := googleConfig.AuthCodeURL("state")

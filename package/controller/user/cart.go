@@ -25,7 +25,7 @@ func CartView(c *gin.Context) {
 	var totalAmount = 0.0
 	var count = 0.0
 	var totalDiscount = 0.0
-	if err := initializer.DB.Joins("Product").Where("user_id=?", userId).Find(&cartView).Error; err != nil {
+	if err := initializer.DB.Where("user_id=?", userId).Joins("Product").Find(&cartView).Error; err != nil {
 		c.JSON(400, gin.H{
 			"status": "Fail",
 			"error":  "failed to fetch data",
@@ -33,17 +33,9 @@ func CartView(c *gin.Context) {
 		})
 		return
 	}
-	if totalAmount == 0 {
-		c.JSON(200, gin.H{
-			"status":  "Success",
-			"message": "No product  in your cart.",
-			"data":    nil,
-			"total":   0,
-		})
-	} else {
 		for _, v := range cartView {
 			offerDiscount := OfferDiscountCalc(v.ProductId)
-			v.Product.Price -= uint(offerDiscount)
+			v.Product.Price -= offerDiscount
 			price := int(v.Quantity) * int(v.Product.Price)
 			totalAmount += float64(price)
 			totalDiscount += offerDiscount * float64(v.Quantity)
@@ -55,17 +47,27 @@ func CartView(c *gin.Context) {
 				},
 				"quantity":       v.Quantity,
 				"productOffer":   offerDiscount,
-				"offered amount": (v.Product.Price - uint(offerDiscount)) * v.Quantity,
+				"offered amount": (v.Product.Price - offerDiscount) * float64(v.Quantity),
 			})
 		}
+		if totalAmount == 0 {
+			c.JSON(200, gin.H{
+				"status":  "Success",
+				"message": "No product  in your cart.",
+				"data":    nil,
+				"total":   0,
+			})
+			return
+		} 
 		c.JSON(200, gin.H{
-			"cartItems":     cartShow,
+			"data":     cartShow,
 			"totalProducts": count,
 			"totalDiscount": totalDiscount,
 			"totalAmount":   totalAmount,
+			"status": "Success",
 		})
 	}
-}
+
 
 // CartStore adds a product to the user's cart if it's not already added.
 // @Summary Add product to cart
@@ -227,6 +229,7 @@ func CartProductRemove(c *gin.Context) {
 		}
 	}
 }
+
 // CartProductDelete removes a product from the user's cart.
 // @Summary Remove product from cart
 // @Description Removes a product from the user's cart.

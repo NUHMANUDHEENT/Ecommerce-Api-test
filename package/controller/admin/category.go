@@ -8,7 +8,7 @@ import (
 )
 // @Summary List categories
 // @Description Retrieve a list of categories from the database
-// @Tags admin/categories
+// @Tags Admin/Categories
 // @Accept json
 // @Produce json
 // @Secure ApiKeyAuth
@@ -44,7 +44,7 @@ type  CategoryForm struct {
 }
 // @Summary Add a new category
 // @Description Add a new category to the database
-// @Tags admin/categories
+// @Tags Admin/Categories
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
@@ -84,7 +84,7 @@ func AddCategory(c *gin.Context) {
 
 // @Summary Edit a category
 // @Description Edit an existing category in the database
-// @Tags admin/categories
+// @Tags Admin/Categories
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
@@ -138,7 +138,7 @@ func EditCategories(c *gin.Context) {
 // DeleteCategory is a function that delete a category by ID from the database and return response with status or error message
 // @Summary Delete a specific category
 // @Description Delete  a specific category by its ID
-// @Tags admin/categories
+// @Tags Admin/Categories
 // @Accept json
 // @Produce   json
 // @Security ApiKeyAuth
@@ -176,7 +176,7 @@ func DeleteCategories(c *gin.Context) {
 // Category blocking using a specific  category ID
 // @Summary Blocking a category
 // @Description Block the access of products in this category
-// @Tags admin/categories
+// @Tags Admin/Categories
 // @Accept json
 // @Produce  json
 // @Security ApiKeyAuth

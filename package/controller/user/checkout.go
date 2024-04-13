@@ -14,7 +14,7 @@ import (
 // Place the order based on cart items with given payment system  and shipping method
 // @Summery  place an order
 // @Description place an order by given cart items, calculate total price of all products in the shopping cart, generate a unique OrderID,place the order with give payment method
-// @Tags  Orders
+// @Tags  Order
 // @Accept multipart/form-data
 // @Produce  json
 // @Secure ApiKeyAuth
@@ -179,7 +179,7 @@ func CheckOut(c *gin.Context) {
 				Order_Id:      order_id,
 				Receipt:       uint(orderId),
 				PaymentStatus: "not done",
-				PaymentAmount: int(totalAmount),
+				PaymentAmount: totalAmount,
 			}).Error
 			if err != nil {
 				c.JSON(401, gin.H{
@@ -198,7 +198,7 @@ func CheckOut(c *gin.Context) {
 		OrderPaymentMethod: paymentMethod,
 		AddressId:          int(Address),
 		OrderAmount:        totalAmount,
-		ShippingCharge:     ShippingCharge,
+		ShippingCharge:     float32(ShippingCharge),
 		OrderDate:          time.Now(),
 		CouponCode:         couponCode,
 	}
@@ -217,7 +217,7 @@ func CheckOut(c *gin.Context) {
 			OrderId:     uint(orderId),
 			ProductId:   val.ProductId,
 			Quantity:    val.Quantity,
-			SubTotal:    val.Product.Price * val.Quantity,
+			SubTotal:    val.Product.Price * float64(val.Quantity),
 			OrderStatus: "pending",
 		}
 		if err := tx.Create(&OrderItems).Error; err != nil {
