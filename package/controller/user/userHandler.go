@@ -6,14 +6,15 @@ import (
 	"project1/package/initializer"
 	"project1/package/middleware"
 	"project1/package/models"
+	"strconv"
 	"time"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 	"golang.org/x/crypto/bcrypt"
 )
 
-var LogJs models.Users
-var otp string
 var RoleUser = "User"
 
 type userDetailSignUp struct {
@@ -23,8 +24,6 @@ type userDetailSignUp struct {
 	Phone    int    `json:"phone"`
 }
 
-var userDetailsBind userDetailSignUp
-
 // New user can signup with unique email and store details into database/
 // @Summary User SignUp
 // @Description SignUp new user with unique email and all other details.
@@ -32,12 +31,14 @@ var userDetailsBind userDetailSignUp
 // @Accept json
 // @Produce json
 // @Param Credentials body userDetailSignUp true "User SignUp credentials"
-// @Success 200 {json} SuccessResponse 
+// @Success 200 {json} SuccessResponse
 // @Failure 400 {json} ErrorResponse
 // @Router /user/signup [post]
 func UserSignUp(c *gin.Context) {
-	LogJs = models.Users{}
+	var otp string
+	var LogJs models.Users
 	var otpStore models.OtpMail
+	var userDetailsBind userDetailSignUp
 	err := c.Bind(&userDetailsBind)
 	if err != nil {
 		c.JSON(406, gin.H{
@@ -56,6 +57,7 @@ func UserSignUp(c *gin.Context) {
 		})
 		return
 	}
+
 	otp = handler.GenerateOtp()
 	fmt.Println("otp is ----------------", otp, "-----------------")
 	err = handler.SendOtp(userDetailsBind.Email, otp)
@@ -98,20 +100,31 @@ func UserSignUp(c *gin.Context) {
 			return
 		}
 	}
+	userDetails := map[string]interface{}{
+		"name":     userDetailsBind.Name,
+		"email":    userDetailsBind.Email,
+		"password": userDetailsBind.Password,
+		"phone":    userDetailsBind.Phone,
+	}
+	session := sessions.Default(c)
+	session.Set("user"+userDetailsBind.Email, userDetails)
+	session.Save()
+	c.SetCookie("sessionId", "user"+userDetailsBind.Email, 600, "/", "", false, true)
 	c.JSON(202, gin.H{
 		"status":  "Success",
 		"message": "OTP has been sent successfully.",
 		"otp":     otp,
 	})
 }
+
 // After sending otp verify given otp with stored otp
 // @Summary User SignUp otp verify
-// @Description otp verification after given user details 
+// @Description otp verification after given user details
 // @Tags Signup
 // @Accept multipart/form-data
 // @Produce json
 // @Param otp formData int true "Verification otp"
-// @Success 200 {json} SuccessResponse 
+// @Success 200 {json} SuccessResponse
 // @Failure 400 {json} ErrorResponse
 // @Router /user/signup/otp [post]
 func OtpCheck(c *gin.Context) {
@@ -126,7 +139,26 @@ func OtpCheck(c *gin.Context) {
 		})
 		return
 	}
-	HashPass, err := bcrypt.GenerateFromPassword([]byte(LogJs.Password), bcrypt.DefaultCost)
+	cookie, err := c.Cookie("sessionId")
+	if err != nil || cookie == "" {
+		c.JSON(403, gin.H{"status": "Forbidden", "Error": "Unauthorized Access!"})
+		return
+	}
+	session := sessions.Default(c)
+	user := session.Get(cookie)
+	if user == nil {
+		c.JSON(404, gin.H{"error": "User data not found in session"})
+		return
+	}
+	userMap := make(map[string]interface{})
+	err = mapstructure.Decode(user, &userMap)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to assert user data to map[string]interface{}"})
+		return
+	}
+	phoneStr := fmt.Sprintf("%v", userMap["phone"])
+	phone, _ := strconv.Atoi(phoneStr)
+	HashPass, err := bcrypt.GenerateFromPassword([]byte(userMap["password"].(string)), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(501, gin.H{
 			"status": "Fail",
@@ -136,10 +168,10 @@ func OtpCheck(c *gin.Context) {
 		return
 	}
 	userDataStore = models.Users{
-		Name:     userDetailsBind.Name,
-		Email:    userDetailsBind.Email,
+		Name:     userMap["name"].(string),
+		Email:    userMap["email"].(string),
 		Password: string(HashPass),
-		Phone:    userDetailsBind.Phone,
+		Phone:    phone,
 		Blocking: true,
 	}
 	erro := initializer.DB.Create(&userDataStore)
@@ -152,77 +184,99 @@ func OtpCheck(c *gin.Context) {
 		return
 	}
 	if err := initializer.DB.Delete(&existingOTP).Error; err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(400, gin.H{
 			"status": "Fail",
 			"error":  "delete data failed",
-			"code":   500,
+			"code":   400,
 		})
 		return
 	}
-	userDataStore = models.Users{}
-	if err := initializer.DB.First(&userDataStore).Error; err != nil {
-		c.JSON(501, gin.H{
+	var userFetchData models.Users
+	if err := initializer.DB.First(&userFetchData, "email=?", userDataStore.Email).Error; err != nil {
+		c.JSON(400, gin.H{
 			"status": "Fail",
 			"error":  "failed to fetch user details for wallet",
-			"code":   501,
+			"code":   400,
 		})
 		return
 	}
 	initializer.DB.Create(&models.Wallet{
-		User_id: int(LogJs.ID),
+		User_id: int(userFetchData.ID),
 	})
+	session.Delete(cookie)
+	session.Save()
+	c.SetCookie("sessionId", "", -1, "/", "", false, false)
 	c.JSON(201, gin.H{
 		"status":  "Success",
 		"message": "user created successfully",
 	})
-	userDetailsBind = userDetailSignUp{}
 }
-// If the otp not sended email otp resend option 
+
+// If the otp not sended email otp resend option
 // @Summary User SignUp resend otp send
-// @Description Resend otp send for signup 
+// @Description Resend otp send for signup
 // @Tags Signup
 // @Produce json
-// @Success 200 {json} SuccessResponse 
+// @Success 200 {json} SuccessResponse
 // @Failure 400 {json} ErrorResponse
 // @Router /user/signup/resend [post]
 func ResendOtp(c *gin.Context) {
+	var otp string
 	var otpStore models.OtpMail
+
+	cookie, err := c.Cookie("sessionId")
+	if err != nil || cookie == "" {
+		c.JSON(403, gin.H{"status": "Forbidden", "Error": "Unauthorized Access!"})
+		return
+	}
+	session := sessions.Default(c)
+	user := session.Get(cookie)
+	if user == nil {
+		c.JSON(404, gin.H{"error": "User data not found in session"})
+		return
+	}
+	userMap := make(map[string]interface{})
+	err = mapstructure.Decode(user, &userMap)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to assert user data to map[string]interface{}"})
+		return
+	}
 	otp = handler.GenerateOtp()
-	err := handler.SendOtp(userDetailsBind.Email, otp)
+	err = handler.SendOtp(userMap["email"].(string), otp)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"status": "fail",
 			"error":  err.Error(),
 			"code":   400,
 		})
+		return
+	}
+	result := initializer.DB.First(&otpStore, "email=?", userMap["email"].(string))
+	if result.Error != nil {
+		otpStore = models.OtpMail{
+			Otp:       otp,
+			Email:     userMap["email"].(string),
+			CreatedAt: time.Now(),
+			ExpireAt:  time.Now().Add(15 * time.Second),
+		}
+		err := initializer.DB.Create(&otpStore)
+		if err.Error != nil {
+			c.JSON(400, gin.H{
+				"status": "fail",
+				"error":  "failed to store otp",
+				"code":   400})
+		}
 	} else {
-		result := initializer.DB.First(&otpStore, "email=?",userDetailsBind.Email)
-		if result.Error != nil {
-			otpStore = models.OtpMail{
-				Otp:       otp,
-				Email:     userDetailsBind.Email,
-				CreatedAt: time.Now(),
-				ExpireAt:  time.Now().Add(15 * time.Second),
-			}
-			err := initializer.DB.Create(&otpStore)
-			if err.Error != nil {
-				c.JSON(400, gin.H{
-					"status": "fail",
-					"error":  "failed to store otp",
-					"code":   400})
-			}
-		} else {
-			err := initializer.DB.Model(&otpStore).Where("email=?",userDetailsBind.Email).Updates(models.OtpMail{
-				Otp:      otp,
-				ExpireAt: time.Now().Add(15 * time.Second),
+		err := initializer.DB.Model(&otpStore).Where("email=?",userMap["email"].(string)).Updates(models.OtpMail{
+			Otp:      otp,
+			ExpireAt: time.Now().Add(15 * time.Second),
+		})
+		if err.Error != nil {
+			c.JSON(400, gin.H{
+				"status": "fail",
+				"error":  "failed to update otp",
+				"code":   400,
 			})
-			if err.Error != nil {
-				c.JSON(400, gin.H{
-					"status": "fail",
-					"error":  "failed to update otp",
-					"code":   400,
-				})
-			}
 		}
 	}
 	c.JSON(202, gin.H{
@@ -250,7 +304,7 @@ type userDetailLogin struct {
 // @Router /user/login [post]
 func UserLogin(c *gin.Context) {
 
-	LogJs = models.Users{}
+	var UserLogin models.Users
 	var userPass userDetailLogin
 	err := c.Bind(&userPass)
 	if err != nil {
@@ -260,8 +314,8 @@ func UserLogin(c *gin.Context) {
 			"code":   400,
 		})
 	}
-	initializer.DB.First(&LogJs, "email=?", userPass.Username)
-	err = bcrypt.CompareHashAndPassword([]byte(LogJs.Password), []byte(userPass.Password))
+	initializer.DB.First(&UserLogin, "email=?", userPass.Username)
+	err = bcrypt.CompareHashAndPassword([]byte(UserLogin.Password), []byte(userPass.Password))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"status": "Fail",
@@ -270,17 +324,17 @@ func UserLogin(c *gin.Context) {
 		})
 		return
 	} else {
-		if !LogJs.Blocking {
+		if !UserLogin.Blocking {
 			c.JSON(401, gin.H{
 				"status":  "Success",
 				"message": "User blocked"})
 		} else {
-			token := middleware.JwtTokenStart(c, LogJs.ID, LogJs.Email, RoleUser)
+			token := middleware.JwtTokenStart(c, UserLogin.ID, UserLogin.Email, RoleUser)
 			c.SetCookie("jwtTokenUser", token, int((time.Hour * 1).Seconds()), "/", "localhost", false, true)
 			c.JSON(200, gin.H{
 				"status":  "Success",
 				"message": "login successfully",
-				"data" :"",
+				"data":    "",
 			})
 		}
 	}

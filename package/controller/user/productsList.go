@@ -206,7 +206,6 @@ func RatingCalc(id string, c *gin.Context) float64 {
 func ReviewStore(c *gin.Context) {
 	var reviewStore models.Review
 	Id := c.Param("ID")
-	fmt.Println(Id)
 	ProductId, _ := strconv.Atoi(Id)
 	reviewStore = models.Review{
 		Review:    c.Request.FormValue("review"),

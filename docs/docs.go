@@ -71,7 +71,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "admin"
+                    "Admin"
                 ],
                 "summary": "Best selling products",
                 "parameters": [
@@ -103,7 +103,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "admin/categories"
+                    "Admin/Categories"
                 ],
                 "summary": "List categories",
                 "responses": {
@@ -135,7 +135,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "admin/categories"
+                    "Admin/Categories"
                 ],
                 "summary": "Add a new category",
                 "parameters": [
@@ -186,14 +186,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "admin/categories"
+                    "Admin/Categories"
                 ],
                 "summary": "Blocking a category",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "The Category ID that will be blocked",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -229,14 +229,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "admin/categories"
+                    "Admin/Categories"
                 ],
                 "summary": "Delete a specific category",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "The Category ID you want to delete",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -264,7 +264,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "admin/categories"
+                    "Admin/Categories"
                 ],
                 "summary": "Edit a category",
                 "parameters": [
@@ -328,7 +328,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/admin/coupon"
+                    "Admin/Coupon"
                 ],
                 "summary": "Get coupon details",
                 "operationId": "get_all_products",
@@ -361,7 +361,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/admin/coupon"
+                    "Admin/Coupon"
                 ],
                 "summary": "New coupon create",
                 "parameters": [
@@ -409,7 +409,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "/admin/coupon"
+                    "Admin/Coupon"
                 ],
                 "summary": "Delete a coupon by ID",
                 "operationId": "deleteCouponByID",
@@ -1599,7 +1599,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Orders"
+                    "Order"
                 ],
                 "parameters": [
                     {

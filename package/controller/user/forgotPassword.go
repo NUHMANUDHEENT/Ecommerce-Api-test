@@ -27,6 +27,7 @@ var otpValid = false
 func ForgotUserCheck(c *gin.Context) {
 	userCheck = models.Users{}
 	var otpStore models.OtpMail
+	var otp string
 	email := c.Request.FormValue("email")
 
 	if err := initializer.DB.First(&userCheck, "email=?", email).Error; err != nil {

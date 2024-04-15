@@ -23,9 +23,26 @@ var RoleAdmin = "Admin"
 // Failure 404 {json} "ErrorResponse"
 // @Router /admin [get]
 func AdminPage(c *gin.Context) {
+	// var OrderDetails []models.OrderItems
+	var totalSales []models.Order
+	var totalAmount float64
+	var totalOrder int
+	if err :=initializer.DB.Find(&totalSales).Error; err != nil {
+			c.JSON(400, gin.H{
+				"status":  "fail",
+				"message": err.Error(),
+				"code":    400,
+			})
+		}
+	for _, v := range totalSales {
+		totalAmount += v.OrderAmount
+		totalOrder += 1
+	}
 	c.JSON(200, gin.H{
 		"status":  "success",
 		"message": "Welcome admin page",
+		"data":    gin.H{"sales": totalAmount, "orderCount": totalOrder},
+		"code":    200,
 	})
 }
 
@@ -150,7 +167,7 @@ func AdminSignUp(c *gin.Context) {
 // @Tags	    Admin/Users
 // @Accept	    json
 // @Produce		json
-// @Security ApiKeyAuth 
+// @Security ApiKeyAuth
 // @Success 200 {array} UpdateUserData "List of users"
 // @Failure 500 {json} ErrorResponse "Failed to fetch user data"
 // @Router	    /admin/user [get]
@@ -170,10 +187,11 @@ func UserList(c *gin.Context) {
 		"data":   userManagment,
 	})
 }
-type  UpdateUserData struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Gender string  `json:"gender"`
+
+type UpdateUserData struct {
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	Gender string `json:"gender"`
 }
 
 // @Summary Edit user details
@@ -190,7 +208,7 @@ type  UpdateUserData struct {
 // @Router /admin/user/{id} [patch]
 func EditUserDetails(c *gin.Context) {
 	var userEdit models.Users
-	var  updateInfo UpdateUserData
+	var updateInfo UpdateUserData
 	id := c.Param("ID")
 	err := initializer.DB.First(&userEdit, id)
 	if err.Error != nil {
@@ -208,9 +226,9 @@ func EditUserDetails(c *gin.Context) {
 				"code":   406,
 			})
 			userEdit = models.Users{
-				Name: updateInfo.Name,
+				Name:   updateInfo.Name,
 				Gender: updateInfo.Gender,
-				Phone: userEdit.Phone,
+				Phone:  userEdit.Phone,
 			}
 		} else {
 			if err := initializer.DB.Save(&userEdit).Error; err != nil {
@@ -229,6 +247,7 @@ func EditUserDetails(c *gin.Context) {
 		}
 	}
 }
+
 // @Summary Block user
 // @Description Update User Bloking status as Blocked or Unblocked
 // @Tags Admin/Users

@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"fmt"
 	"project1/package/initializer"
 	"project1/package/models"
 
 	"github.com/gin-gonic/gin"
 )
+
 // @Summary List categories
 // @Description Retrieve a list of categories from the database
 // @Tags Admin/Categories
@@ -38,10 +40,12 @@ func CategoryList(c *gin.Context) {
 		"categories": categoryShow,
 	})
 }
-type  CategoryForm struct {
+
+type CategoryForm struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
+
 // @Summary Add a new category
 // @Description Add a new category to the database
 // @Tags Admin/Categories
@@ -54,7 +58,7 @@ type  CategoryForm struct {
 // @Failure 500 {json} JSON "Failed to insert category"
 // @Router /admin/categories [POST]
 func AddCategory(c *gin.Context) {
-	var bindCategory  CategoryForm
+	var bindCategory CategoryForm
 	if err := c.Bind(&bindCategory); err != nil {
 		c.JSON(406, gin.H{
 			"status": "Fail",
@@ -67,7 +71,7 @@ func AddCategory(c *gin.Context) {
 	if result := initializer.DB.Create(&models.Category{
 		Category_name:        bindCategory.Name,
 		Category_description: bindCategory.Description,
-		Blocking:              false,
+		Blocking:             false,
 	}); result.Error != nil {
 		c.JSON(500, gin.H{
 			"status": "Fail",
@@ -118,8 +122,8 @@ func EditCategories(c *gin.Context) {
 		return
 	}
 	editcategory = models.Category{
-		Category_name:    bindCategory.Name,
-		Category_description:  bindCategory.Description,
+		Category_name:        bindCategory.Name,
+		Category_description: bindCategory.Description,
 	}
 	if err := initializer.DB.Save(&editcategory).Error; err != nil {
 		c.JSON(500, gin.H{
@@ -132,9 +136,9 @@ func EditCategories(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": "Success",
 		"error":  "Successfully edited category",
-		"data":   editcategory,
 	})
 }
+
 // DeleteCategory is a function that delete a category by ID from the database and return response with status or error message
 // @Summary Delete a specific category
 // @Description Delete  a specific category by its ID
@@ -142,11 +146,11 @@ func EditCategories(c *gin.Context) {
 // @Accept json
 // @Produce   json
 // @Security ApiKeyAuth
-// @Param id path int true  "The Category ID you want to delete"
+// @Param ID path integer true "The Category ID you want to delete"
 // @Success 200 {json} JSON "Category deleted successfully"
 // @Router /admin/categories/{ID} [delete]
 func DeleteCategories(c *gin.Context) {
-	var deletecategory models.Products
+	var deletecategory models.Category
 	id := c.Param("ID")
 	err := initializer.DB.First(&deletecategory, id)
 	if err.Error != nil {
@@ -172,7 +176,6 @@ func DeleteCategories(c *gin.Context) {
 	}
 }
 
-
 // Category blocking using a specific  category ID
 // @Summary Blocking a category
 // @Description Block the access of products in this category
@@ -180,14 +183,15 @@ func DeleteCategories(c *gin.Context) {
 // @Accept json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Param id path int true "The Category ID that will be blocked"
+// @Param ID path int true "The Category ID that will be blocked"
 // @Success 200 {json} JSON "Category deleted successfully"
 // @Failure 401 {json}  JSON "Unauthorized"
 // @Router /admin/categories/block/{ID} [patch]
 func BlockCategory(c *gin.Context) {
 	var blockCategory models.Category
 	id := c.Param("ID")
-	err := initializer.DB.First(&blockCategory, id)
+	fmt.Println("ew",id)
+	err := initializer.DB.First(&blockCategory, "id=?", id)
 	if err.Error != nil {
 		c.JSON(500, gin.H{
 			"status": "Fail",

@@ -154,7 +154,7 @@ paths:
             type: json
       summary: Best selling products
       tags:
-      - admin
+      - Admin
   /admin/categories:
     get:
       consumes:
@@ -173,7 +173,7 @@ paths:
             type: json
       summary: List categories
       tags:
-      - admin/categories
+      - Admin/Categories
     post:
       consumes:
       - application/json
@@ -204,7 +204,7 @@ paths:
       - ApiKeyAuth: []
       summary: Add a new category
       tags:
-      - admin/categories
+      - Admin/Categories
   /admin/categories/{ID}:
     delete:
       consumes:
@@ -213,7 +213,7 @@ paths:
       parameters:
       - description: The Category ID you want to delete
         in: path
-        name: id
+        name: ID
         required: true
         type: integer
       produces:
@@ -227,7 +227,7 @@ paths:
       - ApiKeyAuth: []
       summary: Delete a specific category
       tags:
-      - admin/categories
+      - Admin/Categories
     patch:
       consumes:
       - application/json
@@ -267,7 +267,7 @@ paths:
       - ApiKeyAuth: []
       summary: Edit a category
       tags:
-      - admin/categories
+      - Admin/Categories
   /admin/categories/block/{ID}:
     patch:
       consumes:
@@ -276,7 +276,7 @@ paths:
       parameters:
       - description: The Category ID that will be blocked
         in: path
-        name: id
+        name: ID
         required: true
         type: integer
       produces:
@@ -294,7 +294,7 @@ paths:
       - ApiKeyAuth: []
       summary: Blocking a category
       tags:
-      - admin/categories
+      - Admin/Categories
   /admin/coupon:
     get:
       consumes:
@@ -316,7 +316,7 @@ paths:
       - ApiKeyAuth: []
       summary: Get coupon details
       tags:
-      - /admin/coupon
+      - Admin/Coupon
     post:
       consumes:
       - application/json
@@ -347,7 +347,7 @@ paths:
       - ApiKeyAuth: []
       summary: New coupon create
       tags:
-      - /admin/coupon
+      - Admin/Coupon
   /admin/coupon/{ID}:
     delete:
       description: Delete a coupon by its unique identifier
@@ -373,7 +373,7 @@ paths:
       - ApiKeyAuth: []
       summary: Delete a coupon by ID
       tags:
-      - /admin/coupon
+      - Admin/Coupon
   /admin/login:
     post:
       consumes:
@@ -1151,7 +1151,7 @@ paths:
           schema:
             type: json
       tags:
-      - Orders
+      - Order
   /filter:
     get:
       consumes:

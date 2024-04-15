@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"project1/package/initializer"
 	"project1/package/models"
 
@@ -40,7 +41,7 @@ func BestSelling(c *gin.Context) {
 			BestList = append(BestList, gin.H{
 				"productName":  v.Name,
 				"salesVolume":  v.Quantity,
-				"averagePrice": float64(v.Price) / float64(v.Quantity),
+				"averagePrice": fmt.Sprintf("%.2f",float64(v.Price) / float64(v.Quantity)),
 			})
 		}
 
