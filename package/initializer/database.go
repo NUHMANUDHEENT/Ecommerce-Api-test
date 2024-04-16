@@ -3,7 +3,6 @@ package initializer
 import (
 	"log"
 	"os"
-	"project1/package/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -19,7 +18,7 @@ func LoadDatabase() {
 		log.Fatal("...........Failed to connect to database..........")
 	}
 	DB = db
-	DB.AutoMigrate(&models.Admins{}, &models.Users{}, &models.Products{}, &models.OtpMail{}, &models.Rating{},
-		&models.Review{}, &models.Category{}, &models.Address{}, &models.Cart{}, &models.Coupon{},
-		&models.Order{}, &models.OrderItems{}, &models.PaymentDetails{}, &models.Wallet{}, &models.Wishlist{}, &models.Offer{})
+	// DB.AutoMigrate(&models.Admins{}, &models.Users{}, &models.Products{}, &models.OtpMail{}, &models.Rating{},
+	// 	&models.Review{}, &models.Category{}, &models.Address{}, &models.Cart{}, &models.Coupon{},
+	// 	&models.Order{}, &models.OrderItems{}, &models.PaymentDetails{}, &models.Wallet{}, &models.Wishlist{}, &models.Offer{})
 }
