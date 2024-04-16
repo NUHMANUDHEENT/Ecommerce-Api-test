@@ -88,7 +88,7 @@ func SalesReportExcel(c *gin.Context) {
 		row.AddCell().Value = strconv.Itoa(int(sale.OrderId))
 		row.AddCell().Value = sale.Product.Name
 		row.AddCell().Value = sale.Order.OrderDate.Format("2006-01-02") 
-		row.AddCell().Value = fmt.Sprintf("%d", sale.SubTotal)          
+		row.AddCell().Value = fmt.Sprintf("%.2f", sale.SubTotal)          
 		totalAmount += float32(sale.SubTotal)
 	}
 	totalRow := sheet.AddRow()

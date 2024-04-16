@@ -64,6 +64,7 @@ func UserSignUp(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"status": "Fail",
+			"err":    err.Error(),
 			"error":  "failed to send otp",
 			"code":   400,
 		})
@@ -267,7 +268,7 @@ func ResendOtp(c *gin.Context) {
 				"code":   400})
 		}
 	} else {
-		err := initializer.DB.Model(&otpStore).Where("email=?",userMap["email"].(string)).Updates(models.OtpMail{
+		err := initializer.DB.Model(&otpStore).Where("email=?", userMap["email"].(string)).Updates(models.OtpMail{
 			Otp:      otp,
 			ExpireAt: time.Now().Add(15 * time.Second),
 		})
