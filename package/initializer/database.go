@@ -12,8 +12,8 @@ var DB *gorm.DB
 
 // =================== connect to database ================
 func LoadDatabase() {
-	dsnUrl := os.Getenv("DSNURL")
-	db, err := gorm.Open(postgres.Open(dsnUrl), &gorm.Config{})
+	dsn := os.Getenv("DSN")
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("...........Failed to connect to database..........")
 	}
