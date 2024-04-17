@@ -110,7 +110,7 @@ func UserSignUp(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Set("signup"+userDetailsBind.Email, userDetails)
 	session.Save()
-	c.SetCookie("sessionId", "signup"+userDetailsBind.Email, 600, "/", "", false, true)
+	c.SetCookie("sessionId", "signup"+userDetailsBind.Email, 600, "/", "hilofy.online", false, false)
 	c.JSON(202, gin.H{
 		"status":  "Success",
 		"message": "OTP has been sent successfully.",
@@ -331,7 +331,7 @@ func UserLogin(c *gin.Context) {
 				"message": "User blocked"})
 		} else {
 			token := middleware.JwtTokenStart(c, UserLogin.ID, UserLogin.Email, RoleUser)
-			c.SetCookie("jwtTokenUser", token, int((time.Hour * 1).Seconds()), "/", "localhost", false, true)
+			c.SetCookie("jwtTokenUser", token, int((time.Hour * 1).Seconds()), "/", "hilofy.online", false, false)
 			c.JSON(200, gin.H{
 				"status":  "Success",
 				"message": "login successfully",

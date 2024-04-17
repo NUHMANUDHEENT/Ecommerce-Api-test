@@ -82,7 +82,7 @@ func AdminLogin(c *gin.Context) {
 		return
 	}
 	token := middleware.JwtTokenStart(c, adminStore.ID, adminStore.Email, RoleAdmin)
-	c.SetCookie("jwtTokenAdmin", token, int((time.Hour * 1).Seconds()), "/", "localhost", false, true)
+	c.SetCookie("jwtTokenAdmin", token, int((time.Hour * 1).Seconds()), "/", "hilofy.online", false, false)
 	c.JSON(202, gin.H{
 		"status":  "success",
 		"message": "Successfully logged",
