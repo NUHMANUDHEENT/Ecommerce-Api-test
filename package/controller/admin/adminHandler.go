@@ -88,7 +88,7 @@ func AdminLogin(c *gin.Context) {
 			"code":       401,
 			"error_type": "authentication_error",
 		})
-		return
+
 	}
 	token := middleware.JwtTokenStart(c, adminStore.ID, adminStore.Email, RoleAdmin)
 	c.SetCookie("jwtTokenAdmin", token, int((time.Hour * 1).Seconds()), "/", "localhost", false, true)
