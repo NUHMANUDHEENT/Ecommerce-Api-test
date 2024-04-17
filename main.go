@@ -22,7 +22,7 @@ func init() {
 //	@version		1.0
 //	@description	Ecommerce API in go using Gin frame work
 
-//	@host		hilofy.online
+//	@host	    hilofy
 //	@BasePath	/
 
 func main() {

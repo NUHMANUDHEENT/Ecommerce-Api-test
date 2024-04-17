@@ -126,14 +126,6 @@ func AdminSignUp(c *gin.Context) {
 		})
 		return
 	}
-	if err != nil {
-		c.JSON(501, gin.H{
-			"status": "Fail",
-			"error":  "Hashing error",
-			"code":   501,
-		})
-		return
-	}
 	erro := initializer.DB.Create(&adminSignUp)
 	if erro.Error != nil {
 		c.JSON(500, gin.H{
