@@ -97,7 +97,7 @@ definitions:
       valid_to:
         type: string
     type: object
-host: hilofy
+host: hilofy.online
 info:
   contact: {}
   description: Ecommerce API in go using Gin frame work
