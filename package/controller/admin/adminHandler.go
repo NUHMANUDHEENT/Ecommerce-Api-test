@@ -81,9 +81,7 @@ func AdminLogin(c *gin.Context) {
 			"error_type": "authentication_error",
 		})
 		return
-	}
-	err = bcrypt.CompareHashAndPassword([]byte(adminStore.Password), []byte(AdminCheck.Password))
-	if err != nil {
+	}else{
 		c.JSON(501, gin.H{
 			"status":     "Fail",
 			"error":      "Invalid username or password",
