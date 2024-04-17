@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var RoleAdmin = "Admin"
@@ -27,13 +26,13 @@ func AdminPage(c *gin.Context) {
 	var totalSales []models.Order
 	var totalAmount float64
 	var totalOrder int
-	if err :=initializer.DB.Find(&totalSales).Error; err != nil {
-			c.JSON(400, gin.H{
-				"status":  "fail",
-				"message": err.Error(),
-				"code":    400,
-			})
-		}
+	if err := initializer.DB.Find(&totalSales).Error; err != nil {
+		c.JSON(400, gin.H{
+			"status":  "fail",
+			"message": err.Error(),
+			"code":    400,
+		})
+	}
 	for _, v := range totalSales {
 		totalAmount += v.OrderAmount
 		totalOrder += 1
@@ -127,7 +126,6 @@ func AdminSignUp(c *gin.Context) {
 		})
 		return
 	}
-	HashPass, err := bcrypt.GenerateFromPassword([]byte(adminSignUp.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(501, gin.H{
 			"status": "Fail",
@@ -136,7 +134,6 @@ func AdminSignUp(c *gin.Context) {
 		})
 		return
 	}
-	adminSignUp.Password = string(HashPass)
 	erro := initializer.DB.Create(&adminSignUp)
 	if erro.Error != nil {
 		c.JSON(500, gin.H{
