@@ -81,14 +81,6 @@ func AdminLogin(c *gin.Context) {
 			"error_type": "authentication_error",
 		})
 		return
-	}else{
-		c.JSON(501, gin.H{
-			"status":     "Fail",
-			"error":      "Invalid username or password",
-			"code":       401,
-			"error_type": "authentication_error",
-		})
-
 	}
 	token := middleware.JwtTokenStart(c, adminStore.ID, adminStore.Email, RoleAdmin)
 	c.SetCookie("jwtTokenAdmin", token, int((time.Hour * 1).Seconds()), "/", "localhost", false, true)
