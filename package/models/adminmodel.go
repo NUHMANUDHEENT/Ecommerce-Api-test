@@ -15,6 +15,8 @@ type Admins struct {
 }
 type Products struct {
 	gorm.Model
+	
+	
 	Name        string         `gorm:"unique" json:"p_name"`
 	Price       float64        `json:"p_price"`
 	Size        string         `json:"p_size"`

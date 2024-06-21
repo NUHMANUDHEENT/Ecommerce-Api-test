@@ -17,7 +17,6 @@ import (
 )
 
 func PaymentHandler(orderId int, amount int) (string, error) {
-
 	client := razorpay.NewClient(os.Getenv("RAZOR_PAY_KEY"), os.Getenv("RAZOR_PAY_SECRET"))
 	orderParams := map[string]interface{}{
 		"amount":   amount * 100,

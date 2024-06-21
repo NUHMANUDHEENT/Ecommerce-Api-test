@@ -64,7 +64,7 @@ func AdminLogin(c *gin.Context) {
 	var AdminCheck adminDetail
 	var adminStore models.Admins
 	err := c.Bind(&AdminCheck)
-	if err != nil {
+	if err != nil {	
 		c.JSON(501, gin.H{
 			"status": "Fail",
 			"error":  "Error binding data",
