@@ -15,7 +15,7 @@ RUN go build -o main .
 EXPOSE 8080
 
 # Pass environment variables to the container
-ENV DB_HOST=localhost
+ENV DB_HOST=my-postgres
 ENV DB_PORT=5432
 ENV DB_USER=postgres
 ENV DB_PASSWORD=Nuhman@456
