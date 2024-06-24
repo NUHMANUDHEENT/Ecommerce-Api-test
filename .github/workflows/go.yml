@@ -34,7 +34,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build Docker image
-      run: docker build -t your-dockerhub-username/your-repo-name:latest .
+      run: docker build -t nuhman9260/my-ecommerce:latest .
 
     - name: Run Docker container
       run: |
