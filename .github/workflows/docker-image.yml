@@ -34,11 +34,11 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t nuhman9260/my-ecommerce:latest .
+        run: docker build -t your-dockerhub-username/your-repo-name:latest .
 
       - name: Run Docker container
         run: |
-          docker run -d --name test-container -p 8080:8080 nuhman9260/my-ecommerce:latest
+          docker run -d --name test-container -p 8080:8080 your-dockerhub-username/your-repo-name:latest
           # Add any commands to test the running container here
           docker ps # List running containers as a simple check
 
@@ -47,7 +47,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: nuhman9260/my-ecommerce:latest
+          tags: your-dockerhub-username/your-repo-name:latest
 
       - name: Clean up
         run: docker container rm -f test-container
