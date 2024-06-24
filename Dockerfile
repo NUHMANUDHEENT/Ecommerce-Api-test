@@ -1,5 +1,5 @@
 
-FROM golang:1.20
+FROM golang:1.20-alpine as builder
 
 WORKDIR /app
 
@@ -9,17 +9,15 @@ RUN go mod download
 
 COPY . .
 
-
 RUN go build -o main .
+
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/main .
+
 
 EXPOSE 8080
 
-# Pass environment variables to the container
-ENV DB_HOST=my-postgres
-ENV DB_PORT=5432
-ENV DB_USER=postgres
-ENV DB_PASSWORD=Nuhman@456
-ENV DB_NAME=postgres
-
-# Command to run the executable
 CMD ["./main"]
