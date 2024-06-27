@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"os"
 	"project1/package/initializer"
 	"project1/package/routers"
 
@@ -26,6 +28,17 @@ func init() {
 //	@BasePath	/
 
 func main() {
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Error getting working directory: %v", err)
+	}
+	log.Printf("Working Directory: %s", wd)
+
+	_, err = os.Stat("templates")
+	if os.IsNotExist(err) {
+		log.Fatalf("Templates directory does not exist")
+	}
+
 	router := gin.Default()
 
 	router.LoadHTMLGlob("templates/*")
@@ -41,5 +54,5 @@ func main() {
 
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run(":8080")
-	
+
 }
