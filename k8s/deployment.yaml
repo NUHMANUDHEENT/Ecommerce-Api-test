@@ -48,3 +48,7 @@ spec:
             secretKeyRef:
               name: ecommerce-secret
               key: DB_SSL
+      tolerations:
+      - key: "node.cloudprovider.kubernetes.io/uninitialized"
+        operator: "Exists"
+        effect: "NoSchedule"
