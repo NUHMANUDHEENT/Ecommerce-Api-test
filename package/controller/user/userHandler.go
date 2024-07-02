@@ -332,7 +332,7 @@ func UserLogin(c *gin.Context) {
 				"message": "User blocked"})
 		} else {
 			token := middleware.JwtTokenStart(c, UserLogin.ID, UserLogin.Email, RoleUser)
-			c.SetCookie("jwtTokenUser", token, int((time.Hour * 1).Seconds()), "/", os.Getenv("HOST_NAME"), false, false)
+			c.SetCookie("jwtTokenUser", token, int((time.Hour * 1).Seconds()), "", os.Getenv("HOST_NAME"), false, false)
 			c.JSON(200, gin.H{
 				"status":  "Success",
 				"message": "login successfully",
