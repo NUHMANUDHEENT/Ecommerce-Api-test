@@ -332,7 +332,7 @@ func UserLogin(c *gin.Context) {
 				"message": "User blocked"})
 		} else {
 			token := middleware.JwtTokenStart(c, UserLogin.ID, UserLogin.Email, RoleUser)
-			c.SetCookie("jwtTokenUser", token, int((time.Hour * 1).Seconds()), "/", "hilofy.online", false, false)
+			c.SetCookie("jwtTokenUser", token, int((time.Hour * 1).Seconds()), "/", os.Getenv("HOST_NAME"), false, false)
 			c.JSON(200, gin.H{
 				"status":  "Success",
 				"message": "login successfully",
@@ -351,7 +351,7 @@ func UserLogin(c *gin.Context) {
 // @Failure 400 {string} ErrorResponse
 // @Router /user/logout [get]
 func UserLogout(c *gin.Context) {
-	c.SetCookie("jwtTokenUser", "", -1, "", "", false, false)
+	c.SetCookie("jwtTokenUser", "", -1, "", os.Getenv("HOST_NAME"), false, false)
 	c.JSON(200, gin.H{
 		"status":  "success",
 		"message": "logout Successfull",

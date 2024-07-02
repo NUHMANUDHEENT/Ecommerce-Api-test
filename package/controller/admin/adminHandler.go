@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"os"
 	"project1/package/initializer"
 	"project1/package/middleware"
 	"project1/package/models"
@@ -64,7 +65,7 @@ func AdminLogin(c *gin.Context) {
 	var AdminCheck adminDetail
 	var adminStore models.Admins
 	err := c.Bind(&AdminCheck)
-	if err != nil {	
+	if err != nil {
 		c.JSON(501, gin.H{
 			"status": "Fail",
 			"error":  "Error binding data",
@@ -82,7 +83,7 @@ func AdminLogin(c *gin.Context) {
 		return
 	}
 	token := middleware.JwtTokenStart(c, adminStore.ID, adminStore.Email, RoleAdmin)
-	c.SetCookie("jwtTokenAdmin", token, int((time.Hour * 1).Seconds()), "/", "hilofy.online", false, false)
+	c.SetCookie("jwtTokenAdmin", token, int((time.Hour * 1).Seconds()), "/", os.Getenv("HOST_NAME"), false, false)
 	c.JSON(202, gin.H{
 		"status":  "success",
 		"message": "Successfully logged",
@@ -98,7 +99,7 @@ func AdminLogin(c *gin.Context) {
 // Failure 404 {json} JSON  "ErrorResponse"
 // @Router /admin/logout [get]
 func AdminLogout(c *gin.Context) {
-	c.SetCookie("jwtTokenAdmin", "", -1, "", "", false, false)
+	c.SetCookie("jwtTokenAdmin", "", -1, "",os.Getenv("HOST_NAME"), false, false)
 	c.JSON(201, gin.H{
 		"status":  "success",
 		"message": "Logout Successfull",
