@@ -73,6 +73,11 @@ spec:
                 secretKeyRef:
                   name: ecommerce-secret
                   key: RAZOR_PAY_SECRET
+            - name: HOST_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: HOST_NAME
       tolerations:
         - key: "node.cloudprovider.kubernetes.io/uninitialized"
           operator: "Exists"
