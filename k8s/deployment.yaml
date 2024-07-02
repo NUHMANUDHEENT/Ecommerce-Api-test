@@ -13,42 +13,67 @@ spec:
         app: ecommerce-app
     spec:
       containers:
-      - name: my-ecommerce
-        image: nuhman9260/my-ecommerce:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: ecommerce-secret
-              key: DB_USER
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: ecommerce-secret
-              key: DB_PASSWORD
-        - name: DB_NAME
-          valueFrom:
-            secretKeyRef:
-              name: ecommerce-secret
-              key: DB_NAME
-        - name: DB_HOST
-          valueFrom:
-            secretKeyRef:
-              name: ecommerce-secret
-              key: DB_HOST
-        - name: DB_PORT
-          valueFrom:
-            secretKeyRef:
-              name: ecommerce-secret
-              key: DB_PORT
-        - name: DB_SSL
-          valueFrom:
-            secretKeyRef:
-              name: ecommerce-secret
-              key: DB_SSL
+        - name: my-ecommerce
+          image: nuhman9260/my-ecommerce:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: DB_NAME
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: DB_PORT
+            - name: DB_SSL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: DB_SSL
+            - name: APPEMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: APPEMAIL
+            - name: APPPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: APPPASSWORD
+            - name: SECRETKEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: SECRETKEY
+            - name: RAZOR_PAY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: RAZOR_PAY_KEY
+            - name: RAZOR_PAY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secret
+                  key: RAZOR_PAY_SECRET
       tolerations:
-      - key: "node.cloudprovider.kubernetes.io/uninitialized"
-        operator: "Exists"
-        effect: "NoSchedule"
+        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+          operator: "Exists"
+          effect: "NoSchedule"
