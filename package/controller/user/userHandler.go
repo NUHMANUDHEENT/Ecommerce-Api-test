@@ -110,7 +110,7 @@ func UserSignUp(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Set("signup"+userDetailsBind.Email, userDetails)
 	session.Save()
-	c.SetCookie("sessionId", "signup"+userDetailsBind.Email, 600, "/", "hilofy.online", false, false)
+	c.SetCookie("sessionId", "signup"+userDetailsBind.Email, 600, "", "", false, false)
 	c.JSON(202, gin.H{
 		"status":  "Success",
 		"message": "OTP has been sent successfully.",
