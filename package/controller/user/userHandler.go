@@ -336,7 +336,6 @@ func UserLogin(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"status":  "Success",
 				"message": "login successfully",
-				"data":    "",
 			})
 		}
 	}

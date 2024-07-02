@@ -13,7 +13,7 @@ func AdminGroup(r *gin.RouterGroup) {
 	//================ admin authentication=======================
 	r.POST("/login", controller.AdminLogin)
 	r.GET("/logout", controller.AdminLogout)
-	r.POST("/signup", middleware.AuthMiddleware(roleAdmin), controller.AdminSignUp)
+	r.POST("/signup", controller.AdminSignUp)
 	r.GET("/", middleware.AuthMiddleware(roleAdmin), controller.AdminPage)
 
 	//================User managment=======================
