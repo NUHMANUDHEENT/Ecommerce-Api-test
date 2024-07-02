@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"os"
 	"project1/package/handler"
 	"project1/package/initializer"
 	"project1/package/middleware"
@@ -110,7 +111,7 @@ func UserSignUp(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Set("signup"+userDetailsBind.Email, userDetails)
 	session.Save()
-	c.SetCookie("sessionId", "signup"+userDetailsBind.Email, 600, "", "", false, false)
+	c.SetCookie("sessionId", "signup"+userDetailsBind.Email, 600, "", os.Getenv("HOST_NAME"), false, false)
 	c.JSON(202, gin.H{
 		"status":  "Success",
 		"message": "OTP has been sent successfully.",
@@ -206,7 +207,7 @@ func OtpCheck(c *gin.Context) {
 	})
 	session.Delete(cookie)
 	session.Save()
-	c.SetCookie("sessionId", "", -1, "/", "", false, false)
+	c.SetCookie("sessionId", "", -1, "/", os.Getenv("HOST_NAME"), false, false)
 	c.JSON(201, gin.H{
 		"status":  "Success",
 		"message": "user created successfully",
