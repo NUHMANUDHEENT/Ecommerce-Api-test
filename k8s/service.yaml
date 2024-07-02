@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: ecommerce-app-service
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: ecommerce-app
   ports:
