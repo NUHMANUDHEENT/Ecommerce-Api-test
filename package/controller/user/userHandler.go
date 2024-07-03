@@ -328,7 +328,7 @@ func UserLogin(c *gin.Context) {
 	} else {
 		if !UserLogin.Blocking {
 			c.JSON(401, gin.H{
-				"status":  "Success",
+				"status":  "Blocked",
 				"message": "User blocked"})
 		} else {
 			token := middleware.JwtTokenStart(c, UserLogin.ID, UserLogin.Email, RoleUser)
