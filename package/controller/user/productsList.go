@@ -41,6 +41,7 @@ func ProductsPage(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": "Success",
 		"data":   productList,
+		
 	})
 }
 
